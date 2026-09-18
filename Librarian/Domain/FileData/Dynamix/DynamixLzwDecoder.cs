@@ -1,7 +1,15 @@
-﻿using System;
+﻿// The Dynamix LZW decompression code was converted from the C++ code of
+// VOGONS.org user tikalat's "midi tools v4". It contains no license, but I
+// assume the fact he included the code implies that he doesn't mind it being
+// useful to more people. The license on the attachment on the forum says
+// "Fair use/fair dealing exception"; not really a license meant for posting
+// your own code under.
+// https://www.vogons.org/viewtopic.php?p=273448#p273448
+
+using System;
 using Nyerguds.Util;
 
-namespace Nyerguds.GameData.Dynamix
+namespace Nyerguds.FileData.Dynamix
 {
     /// <summary>
     /// The Dynamix LZW decompression class.

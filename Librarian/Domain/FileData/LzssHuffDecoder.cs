@@ -1,8 +1,14 @@
-﻿using System;
+﻿// The LZHUF compression algorithm implementation is based on lzhuf.c by Haruyasu Yoshizaki (1988),
+// with comments translated by Haruhiko Okumura and subsequent modifications by Paul Edwards.
+// Source: https://github.com/pzgnss/snippets/blob/master/lzhuf.c
+// Although the original authors are known, the original source file contains no explicit license
+// or copyright notice. The licensing status of this particular version is therefore unclear.
 
-namespace Nyerguds.GameData.Dynamix
+using System;
+
+namespace Nyerguds.FileData.Compression
 {
-    public class DynamixLzHuffDecoder
+    public class LzssHuffDecoder
     {
         /**************************************************************
         lzhuf.c
@@ -29,9 +35,22 @@ namespace Nyerguds.GameData.Dynamix
           ebcdic spaces.  This was done by changing the ' ' (space literal)
           to 0x20 (which is the far most likely character to occur, if you
           don't know what environment it will be running on.
-    **************************************************************/
+        **************************************************************/
 
-// Thanks to: NewRisingSun
+        public static byte[] LzssDecode(byte[] buffer, int? startOffset, int? endOffset, int decompressedSize)
+        {
+            LzssHuffDecoder lzhDec = new LzssHuffDecoder();
+            byte[] outputBuffer = lzhDec.Decode(buffer, startOffset, endOffset, decompressedSize);
+            if (decompressedSize < outputBuffer.Length)
+                throw new ArgumentException("Decompression failed.");
+            if (decompressedSize > outputBuffer.Length)
+            {
+                byte[] output = new byte[decompressedSize];
+                Array.Copy(outputBuffer, output, outputBuffer.Length);
+                return output;
+            }
+            return outputBuffer;
+        }
 
 /********** LZSS compression **********/
 

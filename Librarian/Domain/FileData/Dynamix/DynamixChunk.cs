@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Nyerguds.Util;
 
-namespace Nyerguds.GameData.Dynamix
+namespace Nyerguds.FileData.Dynamix
 {
     public class DynamixChunk
     {

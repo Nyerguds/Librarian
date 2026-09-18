@@ -1,8 +1,8 @@
 ﻿using System;
-using Nyerguds.GameData.Compression;
+using Nyerguds.FileData.Compression;
 using Nyerguds.Util;
 
-namespace Nyerguds.GameData.Dynamix
+namespace Nyerguds.FileData.Dynamix
 {
     /// <summary>
     /// Dynamix compression / decompression class. Offers functionality to decompress chunks using RLE or LZW decompression,
@@ -110,18 +110,12 @@ namespace Nyerguds.GameData.Dynamix
             }
         }
 
-        public static byte[] LzssDecode(byte[] buffer, int? startOffset, int? endOffset, int decompressedSize)
+        public static byte[] RleDecode(byte[] buffer, uint? startOffset, uint? endOffset, int decompressedSize, bool abortOnError)
         {
-            DynamixLzHuffDecoder lzhDec = new DynamixLzHuffDecoder();
-            byte[] outputBuffer = lzhDec.Decode(buffer, startOffset, endOffset, decompressedSize);
-            if (decompressedSize < outputBuffer.Length)
-                throw new ArgumentException("Decompression failed!");
-            if (decompressedSize > outputBuffer.Length)
-            {
-                byte[] output = new byte[decompressedSize];
-                Array.Copy(outputBuffer, output, outputBuffer.Length);
-                return output;
-            }
+            byte[] outputBuffer = new byte[decompressedSize];
+            // Uses standard RLE implementation.
+            RleCompressionHighBitRepeat rle = new RleCompressionHighBitRepeat();
+            rle.RleDecodeData(buffer, startOffset, endOffset, ref outputBuffer, abortOnError);
             return outputBuffer;
         }
 
@@ -133,13 +127,9 @@ namespace Nyerguds.GameData.Dynamix
             return outputBuffer;
         }
 
-        public static byte[] RleDecode(byte[] buffer, uint? startOffset, uint? endOffset, int decompressedSize, bool abortOnError)
+        public static byte[] LzssDecode(byte[] buffer, int? startOffset, int? endOffset, int decompressedSize)
         {
-            byte[] outputBuffer = new byte[decompressedSize];
-            // Uses standard RLE implementation.
-            RleCompressionHighBitRepeat rle = new RleCompressionHighBitRepeat();
-            rle.RleDecodeData(buffer, startOffset, endOffset, ref outputBuffer, abortOnError);
-            return outputBuffer;
+            return LzssHuffDecoder.LzssDecode(buffer, startOffset, endOffset, decompressedSize);
         }
 
         /// <summary>
@@ -149,7 +139,7 @@ namespace Nyerguds.GameData.Dynamix
         /// <returns>The run-length encoded data</returns>
         public static byte[] LzssEncode(byte[] buffer)
         {
-            DynamixLzHuffDecoder enc = new DynamixLzHuffDecoder();
+            LzssHuffDecoder enc = new LzssHuffDecoder();
             return null; // enc.Encode(buffer, null, null);
         }
         
