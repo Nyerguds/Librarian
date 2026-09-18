@@ -43,13 +43,14 @@ Note that at this moment, there are no formats with subdirectories that actually
 Version history:
 ---------------
 
-v1.1.1: (??/??/20?? ??:??)
+v1.1.1: (18/09/2026 21:06)
 -Added support for "Executioners" archives.
 -Added support for the PC Spiel MVB archives.
 -Fixed issue where saving a Dynamix v1 archive would write an illegal file length.
 -Saving a new archive will now reload the archive from disk afterwards, as it should.
 -Dragging files into an archive will now select the first of these files in the list.
 -Saving an archive will now retain the scroll position and the first selected item.
+-Inserted files are now rejected if they contain folder paths if the archive does not support directories.
 
 v1.1.0: (07/05/2021 17:07)
 -Fixed an issue with Mythos LIB Archives showing an empty files list.

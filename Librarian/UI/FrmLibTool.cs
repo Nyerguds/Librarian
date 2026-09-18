@@ -160,33 +160,49 @@ namespace LibrarianTool
             if (m_LoadedArchive == null)
                 return;
             List<string> filesList = new List<string>();
-            List<string> filesListRel = new List<string>();
+            List<string> filesListCustomNames = new List<string>();
             foreach (string file in files)
             {
-                if ((File.GetAttributes(file) & FileAttributes.Directory) != 0)
+                bool isDirectory;
+                try
                 {
+                    isDirectory = (File.GetAttributes(file) & FileAttributes.Directory) == FileAttributes.Directory;
+                }
+                catch (Exception ex)
+                {
+                    string err = String.Format("Error accessing file.\n\nPath:\n{0}\n\nError:\n{1}.", file, ex.Message);
+                    MessageBox.Show(err, GetTitle(false, false));
+                    return;
+                }
+                if (isDirectory)
+                {
+                    if (!m_LoadedArchive.SupportsFolders)
+                    {
+                        MessageBox.Show("This archive type does not support folders.", GetTitle(false, false));
+                        return;
+                    }
                     string containingFolder = Path.GetDirectoryName(file);
-                    AddFilesRecursive(file, containingFolder, filesList, filesListRel);
+                    AddFilesRecursive(file, containingFolder, filesList, filesListCustomNames);
                 }
                 else
                 {
                     filesList.Add(file);
-                    filesListRel.Add(null);
+                    filesListCustomNames.Add(null);
                 }
             }
             string[] adaptedFiles = new string[filesList.Count];
             for (int i = 0; i < filesList.Count; ++i)
             {
-                if (filesListRel[i] == null)
+                if (filesListCustomNames[i] == null)
                     m_LoadedArchive.InsertFile(filesList[i]);
                 else
-                    m_LoadedArchive.InsertFile(filesList[i], filesListRel[i]);
+                    m_LoadedArchive.InsertFile(filesList[i], filesListCustomNames[i]);
             }
             int firstIndex = m_LoadedArchive.FilesList.Count;
             ArchiveEntry firstEntry = null;
             for (int i = 0; i < filesList.Count; ++i)
             {
-                ArchiveEntry entry = m_LoadedArchive.FindFile(filesListRel[i] ?? filesList[i], out int index);
+                ArchiveEntry entry = m_LoadedArchive.FindFile(filesListCustomNames[i] ?? filesList[i], out int index);
                 if (index < firstIndex)
                 {
                     firstIndex = index;
@@ -196,24 +212,24 @@ namespace LibrarianTool
             LoadArchive(m_LoadedArchive, false, firstEntry?.FileName, firstEntry?.HashedFilename);
         }
 
-        private void AddFilesRecursive(string file, string basePath, List<string> filesList, List<string> filesListRelative)
+        private void AddFilesRecursive(string file, string basePath, List<string> filesList, List<string> filesListCustomNames)
         {
             string fullBasePath = Path.GetFullPath(basePath);
             string fullFilePath = Path.GetFullPath(file);
             int basePathLen = fullBasePath.Length + 1;
             filesList.Add(file);
             string filePathRel = fullFilePath.Substring(basePathLen);
-            filesListRelative.Add(filePathRel.Contains('\\') ? filePathRel : null);
+            filesListCustomNames.Add(filePathRel.Contains(Path.PathSeparator) ? filePathRel : null);
             if ((File.GetAttributes(file) & FileAttributes.Directory) == 0)
                 return;
             string[] files = Directory.GetFiles(file);
             filesList.AddRange(files);
             for (int i = 0; i < files.Length; ++i)
                 files[i] = files[i].Substring(basePathLen);
-            filesListRelative.AddRange(files);
+            filesListCustomNames.AddRange(files);
             string[] subDirs = Directory.GetDirectories(file);
             foreach (string subDir in subDirs)
-                AddFilesRecursive(subDir, basePath, filesList, filesListRelative);
+                AddFilesRecursive(subDir, basePath, filesList, filesListCustomNames);
         }
 
         private Archive DetectArchive(string path, bool showErrors)
@@ -280,25 +296,27 @@ namespace LibrarianTool
                 foreach (ArchiveEntry entry in archive.FilesList)
                 {
                     lbFilesList.Items.Add(entry);
-                    if (!searchComplete)
+                    if (searchComplete)
+                        continue;
+                    if (entry.FileName == selectFile || (selectFileHash.HasValue && selectFileHash.Value == entry.HashedFilename))
                     {
-                        if (entry.FileName == selectFile || (selectFileHash.HasValue && selectFileHash.Value == entry.HashedFilename))
-                        {
-                            searchComplete = true;
-                        }
-                        else
-                        {
-                            toSelect++;
-                        }
+                        searchComplete = true;
+                    }
+                    else
+                    {
+                        toSelect++;
                     }
                 }
             }
             lbFilesList.EndUpdate();
-            lbFilesList.TopIndex = Math.Min(scrollIndex, lbFilesList.Items.Count - 1);
-            // Only execute if a search was done, and it found something.
-            if (doSearch && searchComplete)
+            if (loaded)
             {
-                lbFilesList.SelectedIndex  = toSelect;
+                lbFilesList.TopIndex = Math.Min(scrollIndex, lbFilesList.Items.Count - 1);
+                // Only execute if a search was done, and it found something.
+                if (doSearch && searchComplete)
+                {
+                    lbFilesList.SelectedIndex  = toSelect;
+                }
             }
             RefreshSidebarFileInfo();
             Text = GetTitle(true, true);
@@ -453,16 +471,32 @@ namespace LibrarianTool
 
         private void tsmiArchiveInsertAs_Click(object sender, EventArgs e)
         {
+            if (m_LoadedArchive == null)
+                return;
             OpenFileDialog sfd = new OpenFileDialog();
             sfd.InitialDirectory = m_LastOpenedFolder;
             if (sfd.ShowDialog(this) != DialogResult.OK)
                 return;
             string internalName = m_LoadedArchive.GetInternalFilename(Path.GetFileName(sfd.FileName));
-            string newName = InputBox.Show("Filename in archive:", "Give filename", Path.GetFileName(internalName));
-            if (newName == null)
-                return;
-            if (m_LoadedArchive == null)
-                return;
+            bool nameOk = false;
+            string newName = null;
+            while (!nameOk)
+            {
+                newName = InputBox.Show("Filename in archive:", "Give filename", Path.GetFileName(internalName));
+                // user pressed cancel
+                if (newName == null) return;
+                if (string.IsNullOrEmpty(newName))
+                {
+                    MessageBox.Show("File name cannot be empty.", GetTitle(false, false));
+                    continue;
+                }
+                if (!m_LoadedArchive.SupportsFolders && (newName.Contains('\\') || newName.Contains('/')))
+                {
+                    MessageBox.Show("This archive type does not support folders.", GetTitle(false, false));
+                    continue;
+                }
+                nameOk = true;
+            }
             m_LoadedArchive.InsertFile(sfd.FileName, newName);
             newName = m_LoadedArchive.GetInternalFilename(newName);
             LoadArchive(m_LoadedArchive, false, newName);
