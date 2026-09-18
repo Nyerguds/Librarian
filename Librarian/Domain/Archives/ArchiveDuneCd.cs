@@ -14,6 +14,7 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeName { get { return "Dune CD Archive"; } }
         public override String ShortTypeDescription { get { return "Dune CD Archive"; } }
         public override String[] FileExtensions { get { return new String[] { "dat" }; } }
+        public override Boolean CanSave { get { return false; } }
 
         protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {

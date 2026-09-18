@@ -49,7 +49,7 @@ namespace LibrarianTool.Domain.Archives
                 if (day == 0 || month == 0 || month > 12)
                     throw new FileTypeLoadException("Bad date stamp.");
                 DateTime dt = new DateTime(year, month, day, hour, min, sec);
-                String extraInfo = getDateStr(dt);
+                String extraInfo = GetDateStr(dt);
                 Int32 curEntryLength = (Int32)ArrayUtils.ReadIntFromByteArray(buffer, 0x10, 4, true);
                 Int32 curEntryPos= (Int32)ArrayUtils.ReadIntFromByteArray(buffer, 0x14, 4, true);
                 if (curEntryPos + curEntryLength > end)
@@ -63,20 +63,13 @@ namespace LibrarianTool.Domain.Archives
             return filesList;
         }
 
-        private String getDateStr(DateTime datestamp)
-        {
-            return "Date: " + datestamp.Year.ToString("D4") + "-" + datestamp.Month.ToString("D2") + "-" + datestamp.Day.ToString("D2") + "\n"
-                    + "Time: " + datestamp.Hour.ToString("D2") + ":" + datestamp.Minute.ToString("D2") + ":" + datestamp.Second.ToString("D2");
-        }
-
-
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
         public override ArchiveEntry InsertFile(String filePath)
         {
             ArchiveEntry file = base.InsertFile(filePath);
             DateTime lastMod = file.Date ?? File.GetLastWriteTime(filePath);
-            file.ExtraInfo = getDateStr(lastMod);
+            file.ExtraInfo = GetDateStr(lastMod);
             return file;
         }
 

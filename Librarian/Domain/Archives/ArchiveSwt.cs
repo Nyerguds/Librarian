@@ -11,10 +11,9 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeName { get { return "SelectWare Technologies Archive"; } }
         public override String ShortTypeDescription { get { return "SelectWare Archive"; } }
         public override String[] FileExtensions { get { return new String[] { "swt" }; } }
+        public override Boolean CanSave { get { return false; } }
 
         const String SWT_BANNER = "SelectWare Technologies demo file";
-
-        public override Boolean CanSave { get { return false; } }
 
         protected override List<ArchiveEntry> LoadArchiveInternal(System.IO.Stream loadStream, string archivePath)
         {

@@ -18,7 +18,7 @@ archives was added later. Currently supported archives:
 -KORT.SND archive from King Arthur's K.O.R.T.
 -Cryo's Dune CD DAT Archives (read-only)
 -SelectWare Technologies Archive (read-only)
--Genus Microprogramming Archive (read-only)
+-Genus Microprogramming GX Archive (read-only)
 -MPS Labs Catalog v1
 -MPS Labs Catalog v2
 
@@ -29,10 +29,15 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=nyerguds@gmail.com
 Version history:
 ---------------
 
+v1.0.5: (05/05/2021 11:04)
+-Added better feedback when attempting to save to a read-only medium.
+-Added date reading support to GX archives
+-Added missing filtering for some archive types that can't be saved.
+
 v1.0.4: (05/05/2021 10:10)
 -Added read support for the archives on the CD version of Cryo's "Dune".
 -Added read support for SelectWare Technologies archives.
--Added read support for Genus Microprogramming archives.
+-Added read support for Genus Microprogramming GX archives.
 -Improved error handling on saving
 -Added "last modified date" to the list of file information that can be stored.
 -Added support for MPS Labs Catalog v1 and v2 archives.

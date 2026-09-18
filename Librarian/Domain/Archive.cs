@@ -22,7 +22,18 @@ namespace LibrarianTool.Domain
         public List<ArchiveEntry> FilesList { get { return this._filesList; } }
         public String FileName { get; protected set; }
         public virtual String ExtraInfo { get; protected set; }
-        
+
+        /// <summary>
+        /// Tool to get date string for ExtraInfo from a dateTime.
+        /// </summary>
+        /// <param name="datestamp">date stamp</param>
+        /// <returns>String for ExtraInfo</returns>
+        protected String GetDateStr(DateTime datestamp)
+        {
+            return "Date: " + datestamp.Year.ToString("D4") + "-" + datestamp.Month.ToString("D2") + "-" + datestamp.Day.ToString("D2") + "\n"
+                    + "Time: " + datestamp.Hour.ToString("D2") + ":" + datestamp.Minute.ToString("D2") + ":" + datestamp.Second.ToString("D2");
+        }
+
         /// <summary>Reads the file, and fills in the _filesList list;</summary>
         /// <param name="loadPath">Path to load the file from.</param>
         /// <returns>True if loading succeeded.</returns>

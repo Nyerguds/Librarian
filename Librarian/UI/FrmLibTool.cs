@@ -461,6 +461,25 @@ namespace LibrarianTool
         {
             try
             {
+                FileInfo fi = new FileInfo(filename);
+                if (fi.IsReadOnly)
+                {
+                    this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Cannot save to this file; it is read-only.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Could not access the file path.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!archiveType.CanSave)
+            {
+                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Saving is not supported for this format. Sorry!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            try
+            {
                 archiveType.SaveArchive(this.m_LoadedArchive, filename);
             }
             catch (NotImplementedException)
