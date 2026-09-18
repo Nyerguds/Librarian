@@ -55,6 +55,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -70,13 +73,16 @@
   <ItemGroup>
     <Compile Include="Domain\Archive.cs" />
     <Compile Include="Domain\ArchiveEntry.cs" />
-    <Compile Include="Domain\ArchiveLibV1.cs" />
-    <Compile Include="Domain\ArchiveLibV2.cs" />
-    <Compile Include="Domain\ArchivePak.cs" />
-    <Compile Include="Domain\ArchiveDynV2.cs" />
-    <Compile Include="Domain\ArchiveDynV1.cs" />
-    <Compile Include="Domain\ArchiveRenpy.cs" />
-    <Compile Include="Domain\ArchiveM3.cs" />
+    <Compile Include="Domain\Archives\ArchiveLadyGl.cs" />
+    <Compile Include="Domain\Archives\ArchiveLibV1.cs" />
+    <Compile Include="Domain\Archives\ArchiveLibV2.cs" />
+    <Compile Include="Domain\Archives\ArchivePak.cs" />
+    <Compile Include="Domain\Archives\ArchiveDynV2.cs" />
+    <Compile Include="Domain\Archives\ArchiveDynV1.cs" />
+    <Compile Include="Domain\Archives\ArchiveRenpy.cs" />
+    <Compile Include="Domain\Archives\ArchiveM3.cs" />
+    <Compile Include="Domain\Archives\ArchiveSndKort.cs" />
+    <Compile Include="Domain\Utils\ExtensionSorter.cs" />
     <Compile Include="Domain\GameData\Dynamix\DynamixChunk.cs" />
     <Compile Include="Domain\GameData\Dynamix\DynamixCompression.cs" />
     <Compile Include="Domain\GameData\Dynamix\DynamixLzHuffDecoder.cs" />

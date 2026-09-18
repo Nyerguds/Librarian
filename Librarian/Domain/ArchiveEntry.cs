@@ -12,6 +12,7 @@ namespace LibrarianTool.Domain
         public String ArchivePath { get; set; }
         public Int32 StartOffset { get; set; }
         public Int32 Length { get; set; }
+        public String ExtraInfo { get; set; }
 
         public ArchiveEntry ()
         {
@@ -35,6 +36,14 @@ namespace LibrarianTool.Domain
             this.Length = -1;
         }
 
+        public ArchiveEntry(String physicalPath, String storedFilename, String extraInfo)
+        {
+            this.PhysicalPath = physicalPath;
+            this.FileName = storedFilename;
+            this.StartOffset = -1;
+            this.Length = -1;
+            this.ExtraInfo = extraInfo;
+        }
         /// <summary>
         /// For loading from an archive.
         /// </summary>

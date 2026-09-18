@@ -6,7 +6,7 @@ using System.Text;
 using Nyerguds.GameData.Dynamix;
 using Nyerguds.Util;
 
-namespace LibrarianTool.Domain
+namespace LibrarianTool.Domain.Archives
 {
     public class ArchiveDynV2 : Archive
     {
@@ -59,7 +59,7 @@ namespace LibrarianTool.Domain
                         currentChunk = DynamixCompression.DecodeChunk(currentChunk);
                         String curName = enc.GetString(currentChunk.TakeWhile(x => x != 0).ToArray());
                         ArchiveEntry fe = new ArchiveEntry(curName, archivePath, currentChunkStart, currentChunkLength);
-                        _filesList.Add(fe);
+                        this._filesList.Add(fe);
                         readMode = ReadMode.ReadChunk;
                         loadStream.Position = currentChunkEnd;
                         break;
@@ -68,7 +68,7 @@ namespace LibrarianTool.Domain
             }
         }
 
-        public override bool SaveArchive(Archive archive, Stream saveStream)
+        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             throw new NotImplementedException();
         }

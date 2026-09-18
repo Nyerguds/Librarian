@@ -42,7 +42,7 @@ namespace Nyerguds.GameData.Dynamix
 
         private Boolean ContainsCode(Byte[] sequence)
         {
-            return GetCode(sequence) != -1;
+            return this.GetCode(sequence) != -1;
         }
 
         public DynamixLzwEncoder()

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
+using LibrarianTool.Domain.Archives;
 using Nyerguds.Util;
 using Nyerguds.Util.UI;
 
@@ -28,9 +28,9 @@ namespace LibrarianTool.Domain
         /// <returns>True if loading succeeded.</returns>
         public void LoadArchive(String loadPath)
         {
+            this.FileName = loadPath;
             using (FileStream fs = new FileStream(loadPath, FileMode.Open))
                 this.LoadArchiveInternal(fs, loadPath);
-            this.FileName = loadPath;
         }
 
         /// <summary>Reads the stream, and fills in the _filesList list;</summary>
@@ -39,8 +39,8 @@ namespace LibrarianTool.Domain
         /// <returns>True if loading succeeded.</returns>
         public void LoadArchive(Stream loadStream, String archivePath)
         {
-            this.LoadArchiveInternal(loadStream, archivePath);
             this.FileName = archivePath;
+            this.LoadArchiveInternal(loadStream, archivePath);
         }
 
         /// <summary>Reads the bytes, and fills in the _filesList list;</summary>
@@ -49,9 +49,9 @@ namespace LibrarianTool.Domain
         /// <returns>True if loading succeeded.</returns>
         public void LoadArchive(Byte[] loadData, String archivePath)
         {
+            this.FileName = archivePath;
             using (MemoryStream ms = new MemoryStream(loadData))
                 this.LoadArchiveInternal(ms, archivePath);
-            this.FileName = archivePath;
         }
 
         /// <summary>Reads the stream, and fills in the _filesList list;</summary>
@@ -63,8 +63,9 @@ namespace LibrarianTool.Domain
         /// <summary>Saves the given archive as this specific type</summary>
         /// <param name="archive">Archive to save as this type.</param>
         /// <param name="saveStream">Stream to save the archive to.</param>
+        /// <param name="savePath">Path that the file will be saved to. Sometimes needed for saving accompanying files.</param>
         /// <returns></returns>
-        public abstract Boolean SaveArchive(Archive archive, Stream saveStream);
+        public abstract Boolean SaveArchive(Archive archive, Stream saveStream, String savePath);
 
         /// <summary>Extracts the requested file from the _filesList list.</summary>
         /// <param name="filename">Name of the file to extract.</param>
@@ -110,35 +111,45 @@ namespace LibrarianTool.Domain
             index = -1;
             return null;
         }
-
+        
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
-        public virtual void InsertFile(String filePath)
-        {
-            String internalFilename = this.GetInternalFilename(Path.GetFileName(filePath));
-            Int32 foundIndex;
-            this.FindFile(filePath, out foundIndex);
-            if (foundIndex != -1)
-                this._filesList[foundIndex] = new ArchiveEntry(filePath, internalFilename);
-            else
-                this._filesList.Add(new ArchiveEntry(filePath, internalFilename));
-            this._filesList = this.FilesList.OrderBy(x => x.FileName).ToList();
-        }
+		public virtual void InsertFile(String filePath)
+		{
+			String internalFilename = this.GetInternalFilename(Path.GetFileName(filePath));
+			Int32 foundIndex;
+			this.FindFile(filePath, out foundIndex);
+			this.InsertFileInternal(filePath, internalFilename, foundIndex);
+			this.OrderFilesListInternal(this._filesList);
+		}
 
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
         /// <param name="internalFilename">Filename as it is stored in the archive.</param>
-        public virtual void InsertFile(String filePath, String internalFilename)
-        {
-            internalFilename = this.GetInternalFilename(internalFilename);
-            Int32 foundIndex;
-            this.FindFile(internalFilename, out foundIndex);
-            if (foundIndex != -1)
-                this._filesList[foundIndex] = new ArchiveEntry(filePath, internalFilename);
-            else
-                this._filesList.Add(new ArchiveEntry(filePath, internalFilename));
-            this._filesList = this.FilesList.OrderBy(x => x.FileName).ToList();
-        }
+		public virtual void InsertFile(String filePath, String internalFilename)
+		{
+
+			internalFilename = this.GetInternalFilename(internalFilename);
+			Int32 foundIndex;
+			this.FindFile(internalFilename, out foundIndex);
+			this.InsertFileInternal(filePath, internalFilename, foundIndex);
+			this.OrderFilesListInternal(this._filesList);
+		}
+
+		protected virtual void InsertFileInternal(String filePath, String internalFilename, Int32 foundIndex)
+		{
+		    if (foundIndex == -1)
+		        this._filesList.Add(new ArchiveEntry(filePath, internalFilename));
+		    else
+		        this._filesList[foundIndex] = new ArchiveEntry(filePath, internalFilename, this._filesList[foundIndex].ExtraInfo);
+		}
+
+        protected virtual void OrderFilesListInternal(List<ArchiveEntry> filesList)
+		{
+            List<ArchiveEntry> orderedList = this.FilesList.OrderBy(x => x.FileName).ToList();
+			filesList.Clear();
+			filesList.AddRange(orderedList);
+		}
 
         /// <summary>
         /// Converts the filename to the type supported internally. By default, this strips
@@ -155,7 +166,7 @@ namespace LibrarianTool.Domain
                 filename = filename.Substring(0, 8);
             if (extension.Length > 4)
                 extension = extension.Substring(0, 4);
-            return new String((filename + extension).ToUpperInvariant().Where(x => x > 0x20 && x < 0x7F).ToArray());
+            return new String((filename + extension).ToUpperInvariant().Replace(' ','_').Where(x => x > 0x20 && x < 0x7F).ToArray());
         }
 
         public virtual void RemoveFiles(String[] filenames)
@@ -188,7 +199,7 @@ namespace LibrarianTool.Domain
             using (MemoryStream ms = new MemoryStream())
             {
                 // Cannot be done straight to the FileStream since unmodified entries may be read from the original file.
-                if (!this.SaveArchive(archive, ms))
+                if (!this.SaveArchive(archive, ms, savePath))
                     return false;
                 ms.Position = 0;
                 using (FileStream fs = new FileStream(savePath, FileMode.Create))
@@ -201,7 +212,7 @@ namespace LibrarianTool.Domain
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                if (!this.SaveArchive(archive, ms))
+                if (!this.SaveArchive(archive, ms, null))
                     return null;
                 return ms.ToArray();
             }
@@ -358,6 +369,7 @@ namespace LibrarianTool.Domain
             typeof(ArchiveDynV2),
             typeof(ArchiveRenpy),
             typeof(ArchiveM3),
+			typeof(ArchiveSndKort),
         };
 
         public static Type[] AutoDetectTypes =
@@ -371,6 +383,7 @@ namespace LibrarianTool.Domain
             typeof(ArchivePakV1),
             typeof(ArchiveDynV1),
             typeof(ArchiveDynV2),
+			typeof(ArchiveSndKort),
         };
 
     }

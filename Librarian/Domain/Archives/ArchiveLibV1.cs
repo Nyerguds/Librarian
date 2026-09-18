@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Nyerguds.Util;
 
-namespace LibrarianTool.Domain
+namespace LibrarianTool.Domain.Archives
 {
     public class ArchiveLibV1 : Archive
     {
@@ -18,7 +18,7 @@ namespace LibrarianTool.Domain
 
         protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
         {
-            Int32 files = GetFilesCount(loadStream, IdBytesLib);
+            Int32 files = this.GetFilesCount(loadStream, IdBytesLib);
             this.LoadLibArchive(loadStream, files, archivePath);
         }
 
@@ -26,11 +26,11 @@ namespace LibrarianTool.Domain
         {
             loadStream.Position = 0;
             if (loadStream.Length < idBytes.Length + 2)
-                throw new FileTypeLoadException("Too short to be a " + ShortTypeDescription + " archive.");
+                throw new FileTypeLoadException("Too short to be a " + this.ShortTypeDescription + " archive.");
             Byte[] testArray = new Byte[idBytes.Length];
             loadStream.Read(testArray, 0, testArray.Length);
             if (!testArray.SequenceEqual(idBytes))
-                throw new FileTypeLoadException("Not a " + ShortTypeDescription + " archive.");
+                throw new FileTypeLoadException("Not a " + this.ShortTypeDescription + " archive.");
             Int32 files = loadStream.ReadByte() | (loadStream.ReadByte() << 8);
             if (files == 0)
                 throw new FileTypeLoadException("No files in archive.");
@@ -75,7 +75,7 @@ namespace LibrarianTool.Domain
             this._filesList = this._filesList.OrderBy(x => x.FileName).ToList();
         }
 
-        public override Boolean SaveArchive(Archive archive, Stream saveStream)
+        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             this.SaveHeader(archive, saveStream, IdBytesLib);
             return this.SaveLibArchive(archive, saveStream);
@@ -106,7 +106,7 @@ namespace LibrarianTool.Domain
                         throw new FileNotFoundException("Cannot find file \"" + entry.PhysicalPath + "\" to write to archive!");
                     fileLength = (Int32) fi.Length;
                 }
-                String curName = GetInternalFilename(entry.FileName);
+                String curName = this.GetInternalFilename(entry.FileName);
                 Int32 copySize = Math.Min(curName.Length, 12);
                 Array.Copy(enc.GetBytes(curName), 0, buffer, 0, copySize);
                 for (Int32 b = copySize; b <= 13; b++)

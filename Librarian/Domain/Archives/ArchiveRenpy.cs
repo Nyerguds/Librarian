@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Nyerguds.Util;
 
-namespace LibrarianTool.Domain
+namespace LibrarianTool.Domain.Archives
 {
     public class ArchiveRenpy : Archive
     {
@@ -57,7 +57,7 @@ namespace LibrarianTool.Domain
             return Path.GetFileName(filePath);
         }
         
-        public override Boolean SaveArchive(Archive archive, Stream saveStream)
+        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             throw new NotSupportedException("Save is not supported for this format. Sorry!");
         }

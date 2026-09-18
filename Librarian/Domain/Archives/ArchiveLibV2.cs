@@ -2,7 +2,7 @@
 using System.IO;
 using Nyerguds.Util;
 
-namespace LibrarianTool.Domain
+namespace LibrarianTool.Domain.Archives
 {
     public class ArchiveLibV2 : ArchiveLibV1
     {
@@ -14,7 +14,7 @@ namespace LibrarianTool.Domain
 
         protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
         {
-            Int32 files = GetFilesCount(loadStream, IdBytesLic);
+            Int32 files = this.GetFilesCount(loadStream, IdBytesLic);
             Int32 skip = 8 * (files + 1);
             if (loadStream.Position + skip >= loadStream.Length)
                 throw new FileTypeLoadException("File too short for full header.");
@@ -23,7 +23,7 @@ namespace LibrarianTool.Domain
             this.LoadLibArchive(loadStream, files, archivePath);
         }
 
-        public override Boolean SaveArchive(Archive archive, Stream saveStream)
+        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             this.SaveHeader(archive, saveStream, IdBytesLic);
             saveStream.Position += 8 * (archive.FilesList.Count + 1);

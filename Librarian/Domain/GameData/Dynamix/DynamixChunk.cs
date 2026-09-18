@@ -21,8 +21,8 @@ namespace Nyerguds.GameData.Dynamix
                 this.m_data = dataCopy;
             }
         }
-        public Int32 Length { get { return Data.Length + 8; } }
-        public Int32 DataLength { get { return Data.Length; } }
+        public Int32 Length { get { return this.Data.Length + 8; } }
+        public Int32 DataLength { get { return this.Data.Length; } }
 
         private Byte[] m_data;
 
@@ -71,7 +71,7 @@ namespace Nyerguds.GameData.Dynamix
         /// <returns>The full chunk as byte array.</returns>
         public Byte[] WriteChunk()
         {
-            Byte[] data = new Byte[Length];
+            Byte[] data = new Byte[this.Length];
             this.WriteChunk(data, 0);
             return data;
         }
@@ -84,14 +84,14 @@ namespace Nyerguds.GameData.Dynamix
         /// <returns>The offset right behind the written data in the target array.</returns>
         public Int32 WriteChunk(Byte[] target, Int32 offset)
         {
-            Array.Copy(Encoding.ASCII.GetBytes(Identifier + ":"), 0, target, offset, 4);
+            Array.Copy(Encoding.ASCII.GetBytes(this.Identifier + ":"), 0, target, offset, 4);
             offset += 4;
-            ArrayUtils.WriteIntToByteArray(target, offset, 4, true, (UInt32)(DataLength));
+            ArrayUtils.WriteIntToByteArray(target, offset, 4, true, (UInt32)(this.DataLength));
             offset += 4;
-            if (IsContainer)
+            if (this.IsContainer)
                 target[offset - 1] |= 0x80;
-            Array.Copy(Data, 0, target, offset, DataLength);
-            return offset + DataLength;
+            Array.Copy(this.Data, 0, target, offset, this.DataLength);
+            return offset + this.DataLength;
         }
 
         /// <summary>

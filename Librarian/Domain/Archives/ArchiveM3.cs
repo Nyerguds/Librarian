@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Nyerguds.Util;
 
-namespace LibrarianTool.Domain
+namespace LibrarianTool.Domain.Archives
 {
     /// <summary>
     /// Interactive Girls Club .m3 / .slb archive format. 
@@ -21,7 +21,7 @@ namespace LibrarianTool.Domain
 
         protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
         {
-            _filesList.Clear();
+            this._filesList.Clear();
             loadStream.Position = 0;
             Int64 streamLength = loadStream.Length;
             Byte[] addressBuffer = new Byte[4];
@@ -68,8 +68,8 @@ namespace LibrarianTool.Domain
                         isScript = !isImage && script == 0x7E7C;
                         loadStream.Position = readOffs;
                     }
-                    String filename = _filesList.Count.ToString("00000000") + "." + (isImage ? "gx2" : (isScript? "txt" : "dat"));
-                    _filesList.Add(new ArchiveEntry(filename, archivePath, prevIndexOffs, indexOffs - prevIndexOffs));
+                    String filename = this._filesList.Count.ToString("00000000") + "." + (isImage ? "gx2" : (isScript? "txt" : "dat"));
+                    this._filesList.Add(new ArchiveEntry(filename, archivePath, prevIndexOffs, indexOffs - prevIndexOffs));
                 }
                 readOffs += 4;
                 loadStream.Position = readOffs;
@@ -83,7 +83,7 @@ namespace LibrarianTool.Domain
             return Path.GetFileName(filePath);
         }
 
-        public override Boolean SaveArchive(Archive archive, Stream saveStream)
+        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             ArchiveEntry[] entries = archive.FilesList.ToArray();
             Int32 firstFileOffset = (entries.Length + 2) * 4;

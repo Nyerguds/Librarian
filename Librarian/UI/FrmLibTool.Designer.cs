@@ -39,6 +39,7 @@
             this.tsmiFileExit = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiArchive = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiArchiveInsert = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiArchiveInsertAs = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiArchiveExtract = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiArchiveDelete = new System.Windows.Forms.ToolStripMenuItem();
             this.lbFilesList = new System.Windows.Forms.ListBox();
@@ -58,7 +59,10 @@
             this.lblFiles = new System.Windows.Forms.Label();
             this.lblExtraInfoVal = new System.Windows.Forms.Label();
             this.lblExtraInfo = new System.Windows.Forms.Label();
-            this.tsmiArchiveInsertAs = new System.Windows.Forms.ToolStripMenuItem();
+            this.lblArchiveName = new System.Windows.Forms.Label();
+            this.lblArchiveNameVal = new System.Windows.Forms.Label();
+            this.lblEntryExtraInfoVal = new System.Windows.Forms.Label();
+            this.lblEntryExtraInfo = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -158,15 +162,23 @@
             // 
             this.tsmiArchiveInsert.Name = "tsmiArchiveInsert";
             this.tsmiArchiveInsert.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
-            this.tsmiArchiveInsert.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveInsert.Size = new System.Drawing.Size(185, 22);
             this.tsmiArchiveInsert.Text = "&Insert file...";
             this.tsmiArchiveInsert.Click += new System.EventHandler(this.tsmiArchiveInsert_Click);
+            // 
+            // tsmiArchiveInsertAs
+            // 
+            this.tsmiArchiveInsertAs.Name = "tsmiArchiveInsertAs";
+            this.tsmiArchiveInsertAs.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
+            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveInsertAs.Text = "Insert file as...";
+            this.tsmiArchiveInsertAs.Click += new System.EventHandler(this.tsmiArchiveInsertAs_Click);
             // 
             // tsmiArchiveExtract
             // 
             this.tsmiArchiveExtract.Name = "tsmiArchiveExtract";
             this.tsmiArchiveExtract.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.tsmiArchiveExtract.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveExtract.Size = new System.Drawing.Size(185, 22);
             this.tsmiArchiveExtract.Text = "&Extract file...";
             this.tsmiArchiveExtract.Click += new System.EventHandler(this.tsmiArchiveExtract_Click);
             // 
@@ -174,7 +186,7 @@
             // 
             this.tsmiArchiveDelete.Name = "tsmiArchiveDelete";
             this.tsmiArchiveDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.tsmiArchiveDelete.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveDelete.Size = new System.Drawing.Size(185, 22);
             this.tsmiArchiveDelete.Text = "&Delete file";
             this.tsmiArchiveDelete.Click += new System.EventHandler(this.tsmiArchiveDelete_Click);
             // 
@@ -268,7 +280,7 @@
             // lblStartOffset
             // 
             this.lblStartOffset.AutoSize = true;
-            this.lblStartOffset.Location = new System.Drawing.Point(260, 181);
+            this.lblStartOffset.Location = new System.Drawing.Point(260, 197);
             this.lblStartOffset.Name = "lblStartOffset";
             this.lblStartOffset.Size = new System.Drawing.Size(61, 13);
             this.lblStartOffset.TabIndex = 5;
@@ -277,7 +289,7 @@
             // lblStartOffsetVal
             // 
             this.lblStartOffsetVal.AutoSize = true;
-            this.lblStartOffsetVal.Location = new System.Drawing.Point(339, 181);
+            this.lblStartOffsetVal.Location = new System.Drawing.Point(339, 197);
             this.lblStartOffsetVal.Name = "lblStartOffsetVal";
             this.lblStartOffsetVal.Size = new System.Drawing.Size(10, 13);
             this.lblStartOffsetVal.TabIndex = 5;
@@ -286,7 +298,7 @@
             // lblFileSize
             // 
             this.lblFileSize.AutoSize = true;
-            this.lblFileSize.Location = new System.Drawing.Point(260, 197);
+            this.lblFileSize.Location = new System.Drawing.Point(260, 213);
             this.lblFileSize.Name = "lblFileSize";
             this.lblFileSize.Size = new System.Drawing.Size(47, 13);
             this.lblFileSize.TabIndex = 5;
@@ -295,7 +307,7 @@
             // lblFileSizeVal
             // 
             this.lblFileSizeVal.AutoSize = true;
-            this.lblFileSizeVal.Location = new System.Drawing.Point(339, 197);
+            this.lblFileSizeVal.Location = new System.Drawing.Point(339, 213);
             this.lblFileSizeVal.Name = "lblFileSizeVal";
             this.lblFileSizeVal.Size = new System.Drawing.Size(10, 13);
             this.lblFileSizeVal.TabIndex = 5;
@@ -338,13 +350,42 @@
             this.lblExtraInfo.TabIndex = 9;
             this.lblExtraInfo.Text = "Extra info:";
             // 
-            // tsmiArchiveInsertAs
+            // lblArchiveName
             // 
-            this.tsmiArchiveInsertAs.Name = "tsmiArchiveInsertAs";
-            this.tsmiArchiveInsertAs.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
-            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(186, 22);
-            this.tsmiArchiveInsertAs.Text = "Insert file as...";
-            this.tsmiArchiveInsertAs.Click += new System.EventHandler(this.tsmiArchiveInsertAs_Click);
+            this.lblArchiveName.AutoSize = true;
+            this.lblArchiveName.Location = new System.Drawing.Point(260, 181);
+            this.lblArchiveName.Name = "lblArchiveName";
+            this.lblArchiveName.Size = new System.Drawing.Size(75, 13);
+            this.lblArchiveName.TabIndex = 5;
+            this.lblArchiveName.Text = "Archive name:";
+            // 
+            // lblArchiveNameVal
+            // 
+            this.lblArchiveNameVal.AutoSize = true;
+            this.lblArchiveNameVal.Location = new System.Drawing.Point(339, 181);
+            this.lblArchiveNameVal.Name = "lblArchiveNameVal";
+            this.lblArchiveNameVal.Size = new System.Drawing.Size(10, 13);
+            this.lblArchiveNameVal.TabIndex = 5;
+            this.lblArchiveNameVal.Text = "-";
+            // 
+            // lblEntryExtraInfoVal
+            // 
+            this.lblEntryExtraInfoVal.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblEntryExtraInfoVal.Location = new System.Drawing.Point(339, 228);
+            this.lblEntryExtraInfoVal.Name = "lblEntryExtraInfoVal";
+            this.lblEntryExtraInfoVal.Size = new System.Drawing.Size(333, 63);
+            this.lblEntryExtraInfoVal.TabIndex = 11;
+            this.lblEntryExtraInfoVal.Text = "-";
+            // 
+            // lblEntryExtraInfo
+            // 
+            this.lblEntryExtraInfo.AutoSize = true;
+            this.lblEntryExtraInfo.Location = new System.Drawing.Point(260, 228);
+            this.lblEntryExtraInfo.Name = "lblEntryExtraInfo";
+            this.lblEntryExtraInfo.Size = new System.Drawing.Size(54, 13);
+            this.lblEntryExtraInfo.TabIndex = 12;
+            this.lblEntryExtraInfo.Text = "Extra info:";
             // 
             // FrmLibTool
             // 
@@ -352,14 +393,18 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(684, 461);
+            this.Controls.Add(this.lblEntryExtraInfoVal);
+            this.Controls.Add(this.lblEntryExtraInfo);
             this.Controls.Add(this.lblExtraInfoVal);
             this.Controls.Add(this.lblExtraInfo);
             this.Controls.Add(this.lblFileSizeVal);
             this.Controls.Add(this.lblStartOffsetVal);
+            this.Controls.Add(this.lblArchiveNameVal);
             this.Controls.Add(this.lblLocationVal);
             this.Controls.Add(this.lblSelectedFileVal);
             this.Controls.Add(this.lblFileSize);
             this.Controls.Add(this.lblStartOffset);
+            this.Controls.Add(this.lblArchiveName);
             this.Controls.Add(this.lblLocation);
             this.Controls.Add(this.lblSelectedFile);
             this.Controls.Add(this.lblFiles);
@@ -418,6 +463,10 @@
         private System.Windows.Forms.Label lblExtraInfoVal;
         private System.Windows.Forms.Label lblExtraInfo;
         private System.Windows.Forms.ToolStripMenuItem tsmiArchiveInsertAs;
+        private System.Windows.Forms.Label lblArchiveName;
+        private System.Windows.Forms.Label lblArchiveNameVal;
+        private System.Windows.Forms.Label lblEntryExtraInfoVal;
+        private System.Windows.Forms.Label lblEntryExtraInfo;
     }
 }
 

@@ -126,9 +126,9 @@ namespace LibrarianTool
                 return;
             String path = files[0];
             this.m_LastOpenedFolder = Path.GetDirectoryName(path);
-            Archive version = this.DetectArchive(path, true);
-            if (version != null)
-                this.LoadArchive(version, true);
+            Archive arch = this.DetectArchive(path, true);
+            if (arch != null)
+                this.LoadArchive(arch, true);
         }
 
         private void Lv_DragEnter(Object sender, DragEventArgs e)
@@ -158,7 +158,7 @@ namespace LibrarianTool
             if(files.Length == 0)
                 return;
             if (this.m_LoadedArchive == null)
-                this.m_LoadedArchive = new ArchiveLibV1();
+                return;
             foreach (String file in files)
                 this.m_LoadedArchive.InsertFile(file);
             this.LoadArchive(this.m_LoadedArchive, false);
@@ -246,14 +246,16 @@ namespace LibrarianTool
             tsmiArchiveExtract.Enabled = selected > 0;
             tsmiArchiveDelete.Enabled = selected > 0;
             if (selected > 1)
-                this.lblSelectedFileVal.Text = "Multiple selected";
+                this.lblSelectedFileVal.Text = "Multiple selected (" + selected + ")";
             if (selected == 0)
                 this.lblSelectedFileVal.Text = "Nothing selected";
             if (selected > 1 || selected == 0)
             {
                 this.lblLocationVal.Text = "-";
+                this.lblArchiveNameVal.Text = "-";
                 this.lblStartOffsetVal.Text = "-";
                 this.lblFileSizeVal.Text = "-";
+                this.lblEntryExtraInfoVal.Text = "-";
                 return;
             }
             ArchiveEntry entry = this.lbFilesList.SelectedItem as ArchiveEntry;
@@ -275,8 +277,10 @@ namespace LibrarianTool
             else
                 lengthStr = entry.Length.ToString();
             this.lblLocationVal.Text = isInserted ? entry.PhysicalPath : "In archive";
+            this.lblArchiveNameVal.Text = Path.GetFileName(entry.ArchivePath);
             this.lblStartOffsetVal.Text = isInserted ? (accessible ? "0" : "?") : entry.StartOffset.ToString();
             this.lblFileSizeVal.Text = lengthStr;
+            this.lblEntryExtraInfoVal.Text = entry.ExtraInfo;
             if(!accessible)
                 this.DeleteFileFromArchive(entry.FileName + " appears to be missing! Remove entry from the list?", true);
         }
@@ -308,7 +312,7 @@ namespace LibrarianTool
                 return;
             
             Archive[] preferredType = selectedItem == null ? null : new Archive[] {selectedItem};
-            Archive archive = DetectArchive(filename, preferredType, true);
+            Archive archive = this.DetectArchive(filename, preferredType, true);
             if (archive != null)
                 this.LoadArchive(archive, true);
         }
@@ -364,7 +368,7 @@ namespace LibrarianTool
             if (path == null)
                 return;
             if (this.m_LoadedArchive == null)
-                this.m_LoadedArchive = new ArchiveLibV1();
+                return;
             this.m_LoadedArchive.InsertFile(sfd.FileName, path);
             this.LoadArchive(this.m_LoadedArchive, false);
         }

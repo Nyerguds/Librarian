@@ -512,28 +512,28 @@ namespace Nyerguds.GameData.Dynamix
             while (numBits > 0)
             {
                 // ERROR!
-                if (buf_ptr >= this.buf_end)
+                if (this.buf_ptr >= this.buf_end)
                     return UInt32.MaxValue;
 
                 // 8-bit buffer
-                if (bits_size == 0)
+                if (this.bits_size == 0)
                 {
-                    bits_size = 8;
-                    bits_data = buf_in[buf_ptr++];
+                    this.bits_size = 8;
+                    this.bits_data = this.buf_in[this.buf_ptr++];
                 }
                 // consume cached bits
                 UInt32 useBits = numBits;
                 if (useBits > 8) useBits = 8;
-                if (useBits > bits_size)
-                    useBits = bits_size;
+                if (useBits > this.bits_size)
+                    useBits = this.bits_size;
 
                 // tack on bits
                 data <<= (Int32) useBits;
-                data |= (UInt32) ((bits_data >> (Int32) (bits_size - useBits)) & bitsMask[useBits]);
+                data |= (UInt32) ((this.bits_data >> (Int32) (this.bits_size - useBits)) & bitsMask[useBits]);
 
                 // update cache data
                 numBits -= useBits;
-                bits_size -= (Byte) useBits;
+                this.bits_size -= (Byte) useBits;
             }
             return data;
         }

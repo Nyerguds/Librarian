@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Nyerguds.Util;
 
-namespace LibrarianTool.Domain
+namespace LibrarianTool.Domain.Archives
 {
     public class ArchiveDynV1 : Archive
     {
@@ -20,7 +20,7 @@ namespace LibrarianTool.Domain
             Encoding enc = Encoding.GetEncoding(437);
             Int64 end = loadStream.Length;
             Byte[] buffer = new Byte[FileEntryLength];
-            _filesList.Clear();
+            this._filesList.Clear();
             Int64 curPos = loadStream.Position;
             while (curPos < end)
             {
@@ -38,19 +38,19 @@ namespace LibrarianTool.Domain
                     throw new FileTypeLoadException("Archive entry outside file bounds.");
                 if (curName.Length == 0 && curEntryLength == 0)
                     continue;
-                _filesList.Add(new ArchiveEntry(curName, archivePath, (Int32)loadStream.Position, curEntryLength));
+                this._filesList.Add(new ArchiveEntry(curName, archivePath, (Int32)loadStream.Position, curEntryLength));
             }
         }
 
-        public override Boolean SaveArchive(Archive archive, Stream saveStream)
+        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             Encoding enc = Encoding.GetEncoding(437);
             Byte[] buffer = new Byte[FileEntryLength];
 
-            foreach (ArchiveEntry entry in _filesList)
+            foreach (ArchiveEntry entry in this._filesList)
             {
-                String filename = GetInternalFilename(entry.FileName);
-                enc.GetBytes(FileName, 0, 12, buffer, 0);
+                String filename = this.GetInternalFilename(entry.FileName);
+                enc.GetBytes(this.FileName, 0, 12, buffer, 0);
                 for (Int32 b = filename.Length; b <= 13; b++)
                     buffer[b] = 0;
                 ArrayUtils.WriteIntToByteArray(buffer, 0x0D, 4, true, (UInt64)entry.Length);

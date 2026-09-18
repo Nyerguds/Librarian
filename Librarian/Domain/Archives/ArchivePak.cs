@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Nyerguds.Util;
 
-namespace LibrarianTool.Domain
+namespace LibrarianTool.Domain.Archives
 {
     public class ArchivePakV1 : ArchivePak
     {
@@ -54,20 +54,20 @@ namespace LibrarianTool.Domain
                 if (address == 0)
                 {
                     foundNullAddress = true;
-                    if (curEntry != null && curEntry.Length == -1 && PakVer == PakVersion.PakVersion2)
+                    if (curEntry != null && curEntry.Length == -1 && this.PakVer == PakVersion.PakVersion2)
                         curEntry.Length = (Int32)end - curEntry.StartOffset;
                 }
-                if (address == end && PakVer == PakVersion.PakVersion1)
+                if (address == end && this.PakVer == PakVersion.PakVersion1)
                 {
                     foundEndAddress = true;
                     if (curEntry != null && curEntry.Length == -1)
                         curEntry.Length = (Int32)end - curEntry.StartOffset;
                 }
-                if (PakVer == PakVersion.PakVersion3 && foundNullName && foundEndAddressEntryV3 && foundNullAddress)
+                if (this.PakVer == PakVersion.PakVersion3 && foundNullName && foundEndAddressEntryV3 && foundNullAddress)
                     break;
-                if (PakVer == PakVersion.PakVersion2 && foundNullAddress)
+                if (this.PakVer == PakVersion.PakVersion2 && foundNullAddress)
                     break;
-                if (PakVer == PakVersion.PakVersion1 && foundEndAddress)
+                if (this.PakVer == PakVersion.PakVersion1 && foundEndAddress)
                     break;
                 if (loadStream.Position == minOffs)
                     break;
@@ -96,7 +96,7 @@ namespace LibrarianTool.Domain
                 if (curName.Length == 0)
                 {
                     foundNullName = true;
-                    if ((curEntry == null || (curEntry.Length == -1 && address > curEntry.StartOffset)) && address != 0 && address <= end && PakVer == PakVersion.PakVersion3)
+                    if ((curEntry == null || (curEntry.Length == -1 && address > curEntry.StartOffset)) && address != 0 && address <= end && this.PakVer == PakVersion.PakVersion3)
                     {
                         foundEndAddressEntryV3 = true;
                         if (curEntry != null)
@@ -111,13 +111,13 @@ namespace LibrarianTool.Domain
                 }
             }
 
-            if (PakVer == PakVersion.PakVersion3 && (!foundNullName || !foundEndAddressEntryV3 || !foundNullAddress))
+            if (this.PakVer == PakVersion.PakVersion3 && (!foundNullName || !foundEndAddressEntryV3 || !foundNullAddress))
                 throw new FileTypeLoadException("This is not a v3 PAK file.");
-            if (PakVer == PakVersion.PakVersion2 && (foundNullName || foundEndAddress || !foundNullAddress))
+            if (this.PakVer == PakVersion.PakVersion2 && (foundNullName || foundEndAddress || !foundNullAddress))
                 throw new FileTypeLoadException("This is not a v2 PAK file.");
-            if (PakVer == PakVersion.PakVersion1 && (foundNullName || foundNullAddress))
+            if (this.PakVer == PakVersion.PakVersion1 && (foundNullName || foundNullAddress))
                 throw new FileTypeLoadException("This is not a v1 PAK file.");
-            if (PakVer == PakVersion.PakVersion1 && !foundEndAddress && loadStream.Position == minOffs && curEntry != null && curEntry.Length == -1)
+            if (this.PakVer == PakVersion.PakVersion1 && !foundEndAddress && loadStream.Position == minOffs && curEntry != null && curEntry.Length == -1)
             {
                 // Seems to be a problem in some v1 pak files where the last entry is gibberish.
                 curEntry.Length = (Int32)end - curEntry.StartOffset;
@@ -131,7 +131,7 @@ namespace LibrarianTool.Domain
                 throw new FileTypeLoadException("Not entries in PAK file.");
         }
 
-        public override Boolean SaveArchive(Archive archive, Stream saveStream)
+        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             ArchiveEntry[] entries = archive.FilesList.ToArray();
             // Filename lengths + version-dependent padding
