@@ -30,7 +30,7 @@ namespace Nyerguds.Util.UI
         static extern IntPtr GetDlgItem(IntPtr hDlg, int nIDDlgItem);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         /// <summary>
         /// Some of the messages that the Tree View control will respond to
@@ -60,7 +60,7 @@ namespace Nyerguds.Util.UI
         /// <param name="dlg"></param>
         /// <param name="parent"></param>
         /// <returns></returns>
-        public static DialogResult ShowFolderBrowser(FolderBrowserDialog dlg, Boolean selectTree, IWin32Window parent = null)
+        public static DialogResult ShowFolderBrowser(FolderBrowserDialog dlg, bool selectTree, IWin32Window parent = null)
         {
             DialogResult result = DialogResult.Cancel;
             int retries = 10;

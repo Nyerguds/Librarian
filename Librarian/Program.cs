@@ -11,7 +11,7 @@ namespace LibrarianTool
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        public static void Main(String[] args)
+        public static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

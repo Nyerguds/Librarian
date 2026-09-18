@@ -10,23 +10,23 @@ namespace Nyerguds.GameData.Dynamix
     /// </summary>
     public class DynamixLzwEncoder
     {
-        private List<Byte[]> dictKeys = new List<Byte[]>();
-        private List<Int32> dictCodes = new List<Int32>();
+        private List<byte[]> dictKeys = new List<byte[]>();
+        private List<int> dictCodes = new List<int>();
 
 
-        private Int32 GetCode(Byte[] sequence)
+        private int GetCode(byte[] sequence)
         {
-            Int32 seqLen = sequence.Length;
+            int seqLen = sequence.Length;
             if (seqLen == 1)
                 return sequence[0];
             // 256 is not used; it's the "reset" code.
-            for (Int32 i = 257; i < this.dictKeys.Count; i++)
+            for (int i = 257; i < dictKeys.Count; ++i)
             {
-                Byte[] check = this.dictKeys[i];
+                byte[] check = dictKeys[i];
                 if (seqLen != check.Length)
                     continue;
-                Boolean noMatch = false;
-                for (Int32 bi = 0; bi < check.Length; bi++)
+                bool noMatch = false;
+                for (int bi = 0; bi < check.Length; ++bi)
                 {
                     if (sequence[bi] == check[bi])
                         continue;
@@ -40,33 +40,33 @@ namespace Nyerguds.GameData.Dynamix
             return -1;
         }
 
-        private Boolean ContainsCode(Byte[] sequence)
+        private bool ContainsCode(byte[] sequence)
         {
-            return this.GetCode(sequence) != -1;
+            return GetCode(sequence) != -1;
         }
 
         public DynamixLzwEncoder()
         {
-            for (Int32 i = 0; i < 256; i++)
+            for (int i = 0; i < 256; ++i)
             {
-                this.dictKeys.Add(new Byte[] { (Byte)i });
-                this.dictCodes.Add(i);
+                dictKeys.Add(new byte[] { (byte)i });
+                dictCodes.Add(i);
             }
             // Reset code
-            this.dictKeys.Add(null);
-            this.dictCodes.Add(256);
+            dictKeys.Add(null);
+            dictCodes.Add(256);
         }
 
-        public Byte[] Compress(Byte[] buffer)
+        public byte[] Compress(byte[] buffer)
         {
-            Int32 codeLen = 9;
-            Int32 bitIndex = 0;
-            Int32 outbuffSize = buffer.Length * 2;
-            Byte[] outbuff = new Byte[outbuffSize];
-            Int32 addedSize = 0;
-            for (int i = 0; i < buffer.Length; i++)
+            int codeLen = 9;
+            int bitIndex = 0;
+            int outbuffSize = buffer.Length * 2;
+            byte[] outbuff = new byte[outbuffSize];
+            int addedSize = 0;
+            for (int i = 0; i < buffer.Length; ++i)
             {
-                Byte b = buffer[i];
+                byte b = buffer[i];
                 // increase code length to amount of bits needed by intCode.
                 ArrayUtils.WriteBitsToByteArray(outbuff, bitIndex, codeLen, b);
                 bitIndex += codeLen;
@@ -76,43 +76,43 @@ namespace Nyerguds.GameData.Dynamix
                 bitIndex += codeLen;
                 addedSize++;
             }
-            Int32 bufSize = (bitIndex + 7) / 8;
-            Byte[] outbuf2 = new Byte[bufSize];
+            int bufSize = (bitIndex + 7) / 8;
+            byte[] outbuf2 = new byte[bufSize];
             Array.Copy(outbuff, outbuf2, bufSize);
             return outbuf2;
         }
 
 
-        public Int32[] CompressToInts(Byte[] buffer)
+        public int[] CompressToInts(byte[] buffer)
         {
-            Byte[] match = new Byte[0];
-            Int32[] compressed = new Int32[(buffer.Length * 2) / 3];
-            Int32 index = 0;
-            foreach (Byte b in buffer)
+            byte[] match = new byte[0];
+            int[] compressed = new int[(buffer.Length * 2) / 3];
+            int index = 0;
+            foreach (byte b in buffer)
             {
-                Int32 oldLen = match.Length;
-                Byte[] nextMatch = new Byte[oldLen + 1];
+                int oldLen = match.Length;
+                byte[] nextMatch = new byte[oldLen + 1];
                 nextMatch[oldLen] = b;
-                if (this.ContainsCode(nextMatch))
+                if (ContainsCode(nextMatch))
                     match = nextMatch;
                 else
                 {
-                    Int32 code = this.GetCode(match);
+                    int code = GetCode(match);
                     // Add current code to list
-                    compressed[index++]= this.dictCodes[code];
+                    compressed[index++]= dictCodes[code];
                     // new sequence; add it to the dictionary
-                    this.dictKeys.Add(nextMatch.ToArray());
-                    this.dictCodes.Add(this.dictCodes.Count);
-                    match = new Byte[] { b };
+                    dictKeys.Add(nextMatch.ToArray());
+                    dictCodes.Add(dictCodes.Count);
+                    match = new byte[] { b };
                 }
             }
             // write remaining output if necessary
             if (match.Length > 0)
             {
-                Int32 code = this.GetCode(match);
-                compressed[index++] = this.dictCodes[code];
+                int code = GetCode(match);
+                compressed[index++] = dictCodes[code];
             }
-            Int32[] finalCodes = new Int32[index];
+            int[] finalCodes = new int[index];
             Array.Copy(compressed, 0, finalCodes, 0, index);
             return finalCodes;
         }

@@ -8,61 +8,51 @@ namespace LibrarianTool.Domain.Archives
 {
     public class ArchiveSwt : Archive
     {
-        public override String ShortTypeName { get { return "SelectWare Technologies Archive"; } }
-        public override String ShortTypeDescription { get { return "SelectWare Archive"; } }
-        public override String[] FileExtensions { get { return new String[] { "swt" }; } }
-        public override Boolean CanSave { get { return false; } }
-        public override Boolean SupportsFolders { get { return true; } }
+        public override string ShortTypeName { get { return "SelectWare Technologies Archive"; } }
+        public override string ShortTypeDescription { get { return "SelectWare Archive"; } }
+        public override string[] FileExtensions { get { return new string[] { "swt" }; } }
+        public override bool CanSave { get { return false; } }
+        public override bool SupportsFolders { get { return true; } }
 
-        const String SWT_BANNER = "SelectWare Technologies demo file";
+        const string SWT_BANNER = "SelectWare Technologies demo file";
 
         protected override List<ArchiveEntry> LoadArchiveInternal(System.IO.Stream loadStream, string archivePath)
         {
-            UInt32 end = (UInt32)loadStream.Length;
+            uint end = (uint)loadStream.Length;
             Encoding enc = new ASCIIEncoding();
-            if (end < SWT_BANNER.Length)
+            int bannerLen = SWT_BANNER.Length;
+            if (end < bannerLen)
                 throw new FileTypeLoadException("Archive not long enough for header.");
-            Byte[] buffer = new Byte[SWT_BANNER.Length];
-            loadStream.Read(buffer, 0, SWT_BANNER.Length);
-            String header = enc.GetString(buffer);
-            if (header != SWT_BANNER)
-                throw new FileTypeLoadException("Header does not match.");
+            byte[] buffer = new byte[bannerLen];
+            loadStream.Read(buffer, 0, bannerLen);
+            byte[] header = enc.GetBytes(SWT_BANNER);
+            for (int i = 0; i < bannerLen; ++i)
+                if (header[i] != buffer[i])
+                    throw new FileTypeLoadException("Header does not match.");            
             loadStream.Read(buffer, 0, 0x0B);
             // First 7 bytes should be [0A 1A 00 00 00 00 00]. Not going to check that though.
             // Next 4 bytes are unknown.
             // start on first file
-            Int32 curPos = 0x2C;
-            const Int32 bufLen = 46;
+            int curPos = 0x2C;
+            const int bufLen = 46;
             List<ArchiveEntry> filesList = new List<ArchiveEntry>();
-            Dictionary<UInt16, ArchiveEntry> folders = new Dictionary<UInt16, ArchiveEntry>();
-            UInt16? prevFolderId = null;
-            ArchiveEntry lastFolder = null;
+            List<string> currentPath = new List<string>();
             while (curPos < end)
             {
-                buffer = new Byte[bufLen];
+                buffer = new byte[bufLen];
                 loadStream.Position = curPos;
-                Int32 address = curPos + bufLen;
+                int address = curPos + bufLen;
                 if (curPos + bufLen >= end)
                     throw new FileTypeLoadException("Archive not long enough for file header.");
                 loadStream.Read(buffer, 0, bufLen);
-                UInt32 entryFlags = (UInt32)ArrayUtils.ReadIntFromByteArray(buffer, 0x00, 3, true);
-                // 00000000 00000000 00000001
-                Boolean rootFile = (entryFlags & 0x000001) == 0;
-                // 10000000 00000000 00000000
-                Boolean flag8 = (entryFlags & 0x800000) != 0;
-                // 00000001 00000000 00000000
-                Boolean flag3_1 = (entryFlags & 0x010000) != 0;
-                // 00000010 00000000 00000000
-                Boolean flag3_2 = (entryFlags & 0x020000) != 0;
-                UInt16 index = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x0F, 2, true);
-                UInt16 folderId = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x11, 2, true);
-                // Detected switch to different folder ID; save this as indication to store a new folder id later.
-                Boolean newFolder = prevFolderId != folderId;
-                prevFolderId = folderId;
-                UInt32 unkn1 = (UInt32)ArrayUtils.ReadIntFromByteArray(buffer, 0x13, 4, true);
-                // buffer[0x17] = 0x20
-                UInt16 dosTime = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x18, 2, true);
-                UInt16 dosDate = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x1A, 2, true);
+                int parentDirLevel = (ushort)ArrayUtils.ReadIntFromByteArray(buffer, 0x00, 2, true);
+                byte fileAttr = buffer[0x17];
+                ushort dosTime = (ushort)ArrayUtils.ReadIntFromByteArray(buffer, 0x18, 2, true);
+                ushort dosDate = (ushort)ArrayUtils.ReadIntFromByteArray(buffer, 0x1A, 2, true);
+                bool isFolder = (fileAttr & 0x10) != 0;
+                // lower this, so it's seen as "level of the containing parent folder" instead of seeing the folder as root entry of the next level.
+                if (isFolder)
+                    parentDirLevel--;
                 DateTime dt;
                 try
                 {
@@ -72,43 +62,52 @@ namespace LibrarianTool.Domain.Archives
                 {
                     throw new FileTypeLoadException(argex.Message, argex);
                 }
-                Int32 length = (Int32)ArrayUtils.ReadIntFromByteArray(buffer, 0x1C, 4, true);
-                Boolean isFolder = length == 0;
-
-                String curName = enc.GetString(buffer.Skip(0x20).TakeWhile(x => x != 0).ToArray());
+                int length = (int)ArrayUtils.ReadIntFromByteArray(buffer, 0x1C, 4, true);
+                if (curPos + bufLen + length > end)
+                    throw new FileTypeLoadException("File contains entry that exceeds file constraints.");
+                string readName = enc.GetString(buffer.Skip(0x20).TakeWhile(x => x != 0).ToArray());
+                int extraDirs = currentPath.Count - parentDirLevel;
+                if (extraDirs > 0)
+                    currentPath.RemoveRange(parentDirLevel, extraDirs);
+                string curName = readName;
+                if (currentPath.Count > 0)
+                    curName = string.Join("\\", currentPath.ToArray()) + "\\" + curName;
+                if (isFolder)
+                    currentPath.Add(readName);
                 ArchiveEntry curEntry = new ArchiveEntry(curName, archivePath, address, length);
                 curEntry.ExtraInfoBin = buffer;
                 curEntry.Date = dt;
-                curEntry.ExtraInfo = "Folder ID: "+ folderId.ToString("X4") + ", file index: " + index + "\n";
-
-                if (newFolder && !folders.ContainsKey(folderId))
-                {
-                    ArchiveEntry previous = filesList.LastOrDefault();
-                    if (previous == null || previous.Length == 0)
-                    {
-                        folders[folderId] = previous;
-                        if (previous != null)
-                            previous.IsFolder = true;
-                    }
-                }
-                ArchiveEntry curFolder = folders[folderId];
-                if (curFolder != null)
-                {
-                    curName = curFolder.FileName + "\\" + curName;
-                    curEntry.FileName = curName;
-                }
+                curEntry.IsFolder = isFolder;
                 filesList.Add(curEntry);
                 curPos += bufLen + length;
             }
             return filesList;
         }
 
-        protected override void OrderFilesListInternal(List<ArchiveEntry> filesList)
+        private string GetFileAttributes(byte fileAttr)
         {
-            // Do nothing.
-            // May adapt this later; if I fill ExtraInfoBin with all info regarding files' folder IDs, index and folders' own IDs,
-            // sorting may be possible that way.
+            List<string> attributes = new List<string>();
+            if ((fileAttr & 0x01) != 0)
+                attributes.Add("Read-only");
+            if ((fileAttr & 0x02) != 0)
+                attributes.Add("Hidden");
+            if ((fileAttr & 0x04) != 0)
+                attributes.Add("System");
+            if ((fileAttr & 0x08) != 0)
+                attributes.Add("Volume label");
+            if ((fileAttr & 0x10) != 0)
+                attributes.Add("Folder");
+            if ((fileAttr & 0x20) != 0)
+                attributes.Add("Archived: " + ((fileAttr & 0x20) != 0 ? "no" : "yes"));
+            return string.Join(", ", attributes.ToArray());
         }
+
+        //protected override void OrderFilesListInternal(List<ArchiveEntry> filesList)
+        //{
+        //    // Do nothing.
+        //    // May adapt this later; if I fill ExtraInfoBin with all info regarding files' folder IDs, index and folders' own IDs,
+        //    // sorting may be possible that way.
+        //}
 
         public override bool SaveArchive(Archive archive, System.IO.Stream saveStream, string savePath)
         {

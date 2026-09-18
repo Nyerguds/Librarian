@@ -10,17 +10,17 @@ namespace Nyerguds.Util.UI
     {
         private InputBox()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
-        private void buttonCancel_Click(Object sender, EventArgs e)
+        private void buttonCancel_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
-        private void buttonOK_Click(Object sender, EventArgs e)
+        private void buttonOK_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Nyerguds.Util.UI
         /// <param name="ypos">Numeric expression that specifies the distance of the upper edge of the dialog box from the top of the screen.</param>
         /// <param name="startPosition">Form start position.</param>
         /// <returns>A string which is null if the user pressed Cancel.</returns>
-        private static String Show(String prompt, String title, String defaultText, Int32 xpos, Int32 ypos, FormStartPosition startPosition)
+        private static string Show(string prompt, string title, string defaultText, int xpos, int ypos, FormStartPosition startPosition)
         {
             using (InputBox form = new InputBox())
             {
@@ -63,7 +63,7 @@ namespace Nyerguds.Util.UI
         /// <param name="xpos">Numeric expression that specifies the distance of the left edge of the dialog box from the left edge of the screen.</param>
         /// <param name="ypos">Numeric expression that specifies the distance of the upper edge of the dialog box from the top of the screen.</param>
         /// <returns>A string which is null if the user pressed Cancel.</returns>
-        public static String Show(String prompt, String title, String defaultText, Int32 xpos, Int32 ypos)
+        public static string Show(string prompt, string title, string defaultText, int xpos, int ypos)
         {
             return Show(prompt, title, defaultText,  xpos, ypos, FormStartPosition.Manual);
         }
@@ -75,7 +75,7 @@ namespace Nyerguds.Util.UI
         /// <param name="title">String expression displayed in the title bar of the dialog box.</param>
         /// <param name="defaultText">String expression displayed in the text box as the default response.</param>
         /// <returns>A string which is null if the user pressed Cancel.</returns>
-        public static String Show(String prompt, String title, String defaultText)
+        public static string Show(string prompt, string title, string defaultText)
         {
             return Show(prompt, title, defaultText, -1, -1, FormStartPosition.CenterScreen);
         }
@@ -88,7 +88,7 @@ namespace Nyerguds.Util.UI
         /// <param name="defaultText">String expression displayed in the text box as the default response.</param>
         /// <param name="startPosition">Form start position.</param>
         /// <returns>A string which is null if the user pressed Cancel.</returns>
-        public static String Show(String prompt, String title, String defaultText, FormStartPosition startPosition)
+        public static string Show(string prompt, string title, string defaultText, FormStartPosition startPosition)
         {
             return Show(prompt, title, defaultText, -1, -1, startPosition);
         }

@@ -115,7 +115,7 @@
             this.tsmiFileSave.Name = "tsmiFileSave";
             this.tsmiFileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.tsmiFileSave.Size = new System.Drawing.Size(236, 22);
-            this.tsmiFileSave.Text = "&Save archive...";
+            this.tsmiFileSave.Text = "&Save archive";
             this.tsmiFileSave.Click += new System.EventHandler(this.tsmiFileSave_Click);
             // 
             // tsmiFileSaveAs

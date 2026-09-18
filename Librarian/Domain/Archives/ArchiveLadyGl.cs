@@ -9,25 +9,24 @@ namespace LibrarianTool.Domain.Archives
 {
     public class ArchiveLadyGl : Archive
     {
-        const Int32 FileNameLength = 0x0D;
-        const Int32 FileEntryLength = FileNameLength + 8;
+        const int FileNameLength = 0x0D;
+        const int FileEntryLength = FileNameLength + 8;
 
-        public override String ShortTypeName { get { return "LadyLove GL/GLT Archive"; } }
+        public override string ShortTypeName { get { return "LadyLove GL/GLT Archive"; } }
+        public override string ShortTypeDescription { get { return "LadyLove GL/GLT Archive"; } }
+        public override string[] FileExtensions { get { return new string[] {"glt"}; } }
+        public override bool CanSave { get { return true; } }
 
-        public override String ShortTypeDescription { get { return "LadyLove GL/GLT Archive"; } }
-
-        public override String[] FileExtensions { get { return new String[] {"glt"}; } }
-
-        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, string archivePath)
         {
             if (archivePath == null)
                 throw new FileTypeLoadException("Need path to identify this type.");
-            String basePath = Path.GetDirectoryName(archivePath);
-            String baseName = Path.Combine(basePath, Path.GetFileNameWithoutExtension(archivePath));
-            String ext = Path.GetExtension(archivePath);
-            String curStreamName = archivePath;
-            String secondStreamName;
-            Boolean secondStreamIsContent;
+            string basePath = Path.GetDirectoryName(archivePath);
+            string baseName = Path.Combine(basePath, Path.GetFileNameWithoutExtension(archivePath));
+            string ext = Path.GetExtension(archivePath);
+            string curStreamName = archivePath;
+            string secondStreamName;
+            bool secondStreamIsContent;
             if (".GLT".Equals(ext, StringComparison.InvariantCultureIgnoreCase))
             {
                 secondStreamIsContent = true;
@@ -60,44 +59,44 @@ namespace LibrarianTool.Domain.Archives
             {
                 Stream tableData = secondStreamIsContent ? loadStream : secondStream;
                 Stream archiveData = secondStreamIsContent ? secondStream : loadStream;
-                String archiveDataName = secondStreamIsContent ? secondStreamName : curStreamName;
-                this.FileName = secondStreamIsContent ? curStreamName : secondStreamName;
-                this.ExtraInfo = "Data archive: " + Path.GetFileName(archiveDataName);
+                string archiveDataName = secondStreamIsContent ? secondStreamName : curStreamName;
+                FileName = secondStreamIsContent ? curStreamName : secondStreamName;
+                ExtraInfo = "Data archive: " + Path.GetFileName(archiveDataName);
 
-                Int32 tableLength = (Int32) tableData.Length;
-                Int32 dataLength = (Int32) archiveData.Length;
+                int tableLength = (int) tableData.Length;
+                int dataLength = (int) archiveData.Length;
                 if (tableLength % FileEntryLength != 0)
                     throw new FileTypeLoadException("Table data does not exact amount of entries.");
-                Int32 frameNr = 0;
-                List<Int32[]> contentOverlapCheck = new List<Int32[]>();
+                int frameNr = 0;
+                List<int[]> contentOverlapCheck = new List<int[]>();
                 while (true)
                 {
-                    Byte[] nameBuf = new Byte[FileEntryLength];
-                    Int32 readAmount = tableData.Read(nameBuf, 0, FileEntryLength);
+                    byte[] nameBuf = new byte[FileEntryLength];
+                    int readAmount = tableData.Read(nameBuf, 0, FileEntryLength);
                     if (readAmount < FileEntryLength)
                         break;
-                    String fileName = new String(nameBuf.TakeWhile(b => b != 0).Select(c => (Char) (c <= 0x20 || c > 0x7F ? 0 : c)).ToArray());
+                    string fileName = new string(nameBuf.TakeWhile(b => b != 0).Select(c => (char) (c <= 0x20 || c > 0x7F ? 0 : c)).ToArray());
                     if (fileName.Contains('\0'))
                         throw new FileTypeLoadException("Non-ascii characters in internal filename.");
-                    String[] nameSplit = fileName.Split('.');
-                    Int32 actualNameLen = fileName.Length;
+                    string[] nameSplit = fileName.Split('.');
+                    int actualNameLen = fileName.Length;
                     if (actualNameLen == 0 || actualNameLen > 12 || nameSplit[0].Length > 8 || nameSplit.Length > 2 || (nameSplit.Length == 2 && nameSplit[1].Length > 3))
                         throw new FileTypeLoadException("Internal filename does not match DOS 8.3 format.");
-                    Int32 fileOffset = (Int32) ArrayUtils.ReadIntFromByteArray(nameBuf, FileNameLength, 4, true);
-                    Int32 fileLength = (Int32) ArrayUtils.ReadIntFromByteArray(nameBuf, FileNameLength + 4, 4, true);
+                    int fileOffset = (int) ArrayUtils.ReadIntFromByteArray(nameBuf, FileNameLength, 4, true);
+                    int fileLength = (int) ArrayUtils.ReadIntFromByteArray(nameBuf, FileNameLength + 4, 4, true);
                     if (fileOffset < 0 || fileLength < 0)
                         throw new FileTypeLoadException("Bad data in table.");
-                    Int32 fileEnd = fileOffset + fileLength;
+                    int fileEnd = fileOffset + fileLength;
 
-                    for (Int32 i = 0; i < frameNr; ++i)
+                    for (int i = 0; i < frameNr; ++i)
                     {
-                        Int32[] prevFrameLen = contentOverlapCheck[i];
-                        Int32 prevStart = prevFrameLen[0];
-                        Int32 prevEnd = prevFrameLen[1];
+                        int[] prevFrameLen = contentOverlapCheck[i];
+                        int prevStart = prevFrameLen[0];
+                        int prevEnd = prevFrameLen[1];
                         if ((fileOffset >= prevStart && fileOffset < prevEnd) || (fileEnd >= prevStart && fileEnd < prevEnd))
                             throw new FileTypeLoadException("Overlapping files in table.");
                     }
-                    contentOverlapCheck.Add(new Int32[] {fileOffset, fileEnd});
+                    contentOverlapCheck.Add(new int[] {fileOffset, fileEnd});
                     if (dataLength < fileEnd)
                         throw new FileTypeLoadException("Internal file does not fit in archive.");
                     filesList.Add(new ArchiveEntry(fileName, archiveDataName, fileOffset, fileLength));
@@ -107,34 +106,42 @@ namespace LibrarianTool.Domain.Archives
             return filesList;
         }
 
-        public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
+        public override bool SaveArchive(Archive archive, Stream saveStream, string savePath)
         {
             if (savePath == null)
                 throw new ArgumentException("This type needs a filename since it writes its data to an accompanying file.");
             if ( ".GL".Equals(Path.GetExtension(savePath)))
                 throw new ArgumentException("Suggested name cannot have extension \".gl\"; it is reserved for the data file.");
             ArchiveEntry[] entries = archive.FilesList.ToArray();
-            Int32 nrOfEntries = entries.Length;
-            String dataPath = Path.Combine(Path.GetDirectoryName(savePath), Path.GetFileNameWithoutExtension(savePath) + ".gl");
+            int nrOfEntries = entries.Length;
+            string dataPath = Path.Combine(Path.GetDirectoryName(savePath), Path.GetFileNameWithoutExtension(savePath) + ".gl");
 
-            Byte[] buffer = new Byte[FileEntryLength];
+            byte[] buffer = new byte[FileEntryLength];
             using (FileStream dataSaveStream = File.OpenWrite(dataPath))
             {
-                for (Int32 i = 0; i < nrOfEntries; ++i)
+                for (int i = 0; i < nrOfEntries; ++i)
                 {
                     ArchiveEntry entry = entries[i];
                     if (entry.FileName.Any(c => c <= 0x20 || c > 0x7F))
                         throw new ArgumentException("Filenames must be pure ASCII.");
-                    String fileName = entry.FileName;
-                    String[] nameSplit = fileName.Split('.');
-                    Int32 actualNameLen = fileName.Length;
+                    string fileName = entry.FileName;
+                    string[] nameSplit = fileName.Split('.');
+                    int actualNameLen = fileName.Length;
                     if (actualNameLen == 0 || actualNameLen > 12 || nameSplit[0].Length > 8 || nameSplit.Length > 2 || (nameSplit.Length == 2 && nameSplit[1].Length > 3))
                         throw new FileTypeLoadException("Filenames must match DOS 8.3 format.");
-                    Byte[] nameBytes = Encoding.ASCII.GetBytes(entry.FileName);
+                    byte[] nameBytes = Encoding.ASCII.GetBytes(entry.FileName);
                     Array.Clear(buffer, 0, FileNameLength);
                     Array.Copy(nameBytes, buffer, nameBytes.Length);
-                    ArrayUtils.WriteIntToByteArray(buffer, FileNameLength, 4, true, (UInt32)dataSaveStream.Position);
-                    ArrayUtils.WriteIntToByteArray(buffer, FileNameLength + 4, 4, true, (UInt32) entry.Length);
+                    ArrayUtils.WriteIntToByteArray(buffer, FileNameLength, 4, true, (uint)dataSaveStream.Position);
+                    int fileLength = entry.Length;
+                    if (entry.PhysicalPath != null)
+                    {
+                        FileInfo fi = new FileInfo(entry.PhysicalPath);
+                        if (!fi.Exists)
+                            throw new FileNotFoundException("Cannot find file \"" + entry.PhysicalPath + "\" to write to archive!");
+                        fileLength = (int)fi.Length;
+                    }
+                    ArrayUtils.WriteIntToByteArray(buffer, FileNameLength + 4, 4, true, (uint)fileLength);
                     saveStream.Write(buffer, 0, FileEntryLength);
                     CopyEntryContentsToStream(entry, dataSaveStream);
                 }

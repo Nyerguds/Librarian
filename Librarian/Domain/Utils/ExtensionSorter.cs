@@ -6,15 +6,15 @@ using System.Text;
 
 namespace Nyerguds.Util
 {
-    public class ExtensionSorter : IComparer<String>
+    public class ExtensionSorter : IComparer<string>
     {
         #region IComparer<String> Members
-        public Int32 Compare(String x, String y)
+        public int Compare(string x, string y)
         {
-            Int32 extCmp = String.Compare(Path.GetExtension(x), Path.GetExtension(y), StringComparison.InvariantCultureIgnoreCase);
+            int extCmp = string.Compare(Path.GetExtension(x), Path.GetExtension(y), StringComparison.InvariantCultureIgnoreCase);
             if (extCmp != 0)
                 return extCmp;
-            return String.Compare(x, y, StringComparison.InvariantCultureIgnoreCase);
+            return string.Compare(x, y, StringComparison.InvariantCultureIgnoreCase);
         }
         #endregion
     }

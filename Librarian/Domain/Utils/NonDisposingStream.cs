@@ -26,57 +26,57 @@ namespace Nyerguds.Util
             this.stream = stream;
         }
 
-        public override Boolean CanRead
+        public override bool CanRead
         {
-            get { return this.stream.CanRead; }
+            get { return stream.CanRead; }
         }
 
-        public override Boolean CanSeek
+        public override bool CanSeek
         {
-            get { return this.stream.CanSeek; }
+            get { return stream.CanSeek; }
         }
 
-        public override Boolean CanTimeout
+        public override bool CanTimeout
         {
-            get { return this.stream.CanTimeout; }
+            get { return stream.CanTimeout; }
         }
 
-        public override Boolean CanWrite
+        public override bool CanWrite
         {
-            get { return this.stream.CanWrite; }
+            get { return stream.CanWrite; }
         }
 
-        public override Int64 Length
+        public override long Length
         {
-            get { return this.stream.Length; }
+            get { return stream.Length; }
         }
 
-        public override Int64 Position
+        public override long Position
         {
-            get { return this.stream.Position; }
-            set { this.stream.Position = value; }
+            get { return stream.Position; }
+            set { stream.Position = value; }
         }
 
-        public override Int32 ReadTimeout
+        public override int ReadTimeout
         {
-            get { return this.stream.ReadTimeout; }
-            set { this.stream.ReadTimeout = value; }
+            get { return stream.ReadTimeout; }
+            set { stream.ReadTimeout = value; }
         }
 
-        public override Int32 WriteTimeout
+        public override int WriteTimeout
         {
-            get { return this.stream.WriteTimeout; }
-            set { this.stream.WriteTimeout = value; }
+            get { return stream.WriteTimeout; }
+            set { stream.WriteTimeout = value; }
         }
 
-        public override IAsyncResult BeginRead(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
+        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
         {
-            return this.stream.BeginRead(buffer, offset, count, callback, state);
+            return stream.BeginRead(buffer, offset, count, callback, state);
         }
 
-        public override IAsyncResult BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
+        public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
         {
-            return this.stream.BeginWrite(buffer, offset, count, callback, state);
+            return stream.BeginWrite(buffer, offset, count, callback, state);
         }
 
         public override void Close()
@@ -87,54 +87,54 @@ namespace Nyerguds.Util
         //public void Dispose()
         // No need to override this one; it just calls Close()
 
-        protected override void Dispose(Boolean disposing)
+        protected override void Dispose(bool disposing)
         {
             // do nothing. Do not close the stream.
         }
 
-        public override Int32 EndRead(IAsyncResult asyncResult)
+        public override int EndRead(IAsyncResult asyncResult)
         {
-            return this.stream.EndRead(asyncResult);
+            return stream.EndRead(asyncResult);
         }
 
         public override void EndWrite(IAsyncResult asyncResult)
         {
-            this.stream.EndWrite(asyncResult);
+            stream.EndWrite(asyncResult);
         }
 
         public override void Flush()
         {
-            this.stream.Flush();
+            stream.Flush();
         }
 
-        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            return this.stream.Read(buffer, offset, count);
+            return stream.Read(buffer, offset, count);
         }
 
-        public override Int32 ReadByte()
+        public override int ReadByte()
         {
-            return this.stream.ReadByte();
+            return stream.ReadByte();
         }
 
-        public override Int64 Seek(Int64 offset, SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin)
         {
-            return this.stream.Seek(offset, origin);
+            return stream.Seek(offset, origin);
         }
 
-        public override void SetLength(Int64 value)
+        public override void SetLength(long value)
         {
-            this.stream.SetLength(value);
+            stream.SetLength(value);
         }
 
-        public override void Write(Byte[] buffer, Int32 offset, Int32 count)
+        public override void Write(byte[] buffer, int offset, int count)
         {
-            this.stream.Write(buffer, offset, count);
+            stream.Write(buffer, offset, count);
         }
 
-        public override void WriteByte(Byte value)
+        public override void WriteByte(byte value)
         {
-            this.stream.WriteByte(value);
+            stream.WriteByte(value);
         }
     }
 }
