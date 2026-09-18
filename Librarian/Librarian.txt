@@ -1,0 +1,16 @@
+Librarian
+--------- Created by by Nyerguds (25/01/2019)
+
+Librarian is a simple game archive management tool.
+
+It was originally created for the Mythos LIB archives, but support for more
+archives (including Westwood PAK, and maybe even MIX) will be added eventually.
+
+WARNING: At this moment, the tool does not have ANY error feedback, and will
+always fail silently! I'll get on that later.
+
+Version history:
+---------------
+
+v1.0.0: (25/01/2019 12:05)
+-All basic functionality implemented for Mythos LIB v1 and v2.
