@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LibrarianTool</RootNamespace>
     <AssemblyName>Librarian</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,6 +35,26 @@
   <PropertyGroup>
     <ApplicationIcon>Librarian.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,11 +72,24 @@
     <Compile Include="Domain\ArchiveEntry.cs" />
     <Compile Include="Domain\ArchiveLibV1.cs" />
     <Compile Include="Domain\ArchiveLibV2.cs" />
-    <Compile Include="Domain\ArchivePakD2.cs" />
+    <Compile Include="Domain\ArchivePak.cs" />
+    <Compile Include="Domain\ArchiveDynV2.cs" />
+    <Compile Include="Domain\ArchiveDynV1.cs" />
+    <Compile Include="Domain\ArchiveRenpy.cs" />
+    <Compile Include="Domain\ArchiveM3.cs" />
+    <Compile Include="Domain\GameData\Dynamix\DynamixChunk.cs" />
+    <Compile Include="Domain\GameData\Dynamix\DynamixCompression.cs" />
+    <Compile Include="Domain\GameData\Dynamix\DynamixLzHuffDecoder.cs" />
+    <Compile Include="Domain\GameData\Dynamix\DynamixLzwDecoder.cs" />
+    <Compile Include="Domain\GameData\Dynamix\DynamixLzwEncoder.cs" />
     <Compile Include="Domain\FileTypeBroadcaster.cs" />
+    <Compile Include="Domain\GameData\LzwCompression.cs" />
+    <Compile Include="Domain\GameData\RleCompression.cs" />
     <Compile Include="Domain\Utils\GeneralUtils.cs" />
     <Compile Include="Domain\HashType.cs" />
     <Compile Include="Domain\Utils\ArrayUtils.cs" />
+    <Compile Include="Domain\Utils\NonDisposingStream.cs" />
+    <Compile Include="Domain\Utils\StreamUtils.cs" />
     <Compile Include="UI\FrmLibTool.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,6 +99,13 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\Tools\FileDialogGenerator.cs" />
+    <Compile Include="Domain\Utils\MimeTypeDetector.cs" />
+    <Compile Include="UI\Tools\InputBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Tools\InputBox.designer.cs">
+      <DependentUpon>InputBox.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -77,6 +118,9 @@
     </Compile>
     <EmbeddedResource Include="UI\FrmLibTool.resx">
       <DependentUpon>FrmLibTool.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Tools\InputBox.resx">
+      <DependentUpon>InputBox.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

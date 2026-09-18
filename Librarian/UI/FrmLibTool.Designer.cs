@@ -30,15 +30,17 @@
         {
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.tsmiFile = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiOpen = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiSave = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiSaveAs = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiReload = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiExit = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiFileNew = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiFileOpen = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiFileSave = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiFileSaveAs = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiFileReload = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiFileClose = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiFileExit = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiArchive = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiInsert = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiExtract = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiDelete = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiArchiveInsert = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiArchiveExtract = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiArchiveDelete = new System.Windows.Forms.ToolStripMenuItem();
             this.lbFilesList = new System.Windows.Forms.ListBox();
             this.lblFileNameVal = new System.Windows.Forms.Label();
             this.lblArchiveTypeVal = new System.Windows.Forms.Label();
@@ -54,6 +56,9 @@
             this.lblFileSizeVal = new System.Windows.Forms.Label();
             this.lblFilesVal = new System.Windows.Forms.Label();
             this.lblFiles = new System.Windows.Forms.Label();
+            this.lblExtraInfoVal = new System.Windows.Forms.Label();
+            this.lblExtraInfo = new System.Windows.Forms.Label();
+            this.tsmiArchiveInsertAs = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -64,103 +69,120 @@
             this.tsmiArchive});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(484, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(684, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // tsmiFile
             // 
             this.tsmiFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmiOpen,
-            this.tsmiSave,
-            this.tsmiSaveAs,
-            this.tsmiReload,
-            this.tsmiExit});
+            this.tsmiFileNew,
+            this.tsmiFileOpen,
+            this.tsmiFileSave,
+            this.tsmiFileSaveAs,
+            this.tsmiFileReload,
+            this.tsmiFileClose,
+            this.tsmiFileExit});
             this.tsmiFile.Name = "tsmiFile";
             this.tsmiFile.Size = new System.Drawing.Size(37, 20);
             this.tsmiFile.Text = "&File";
             // 
-            // tsmiOpen
+            // tsmiFileNew
             // 
-            this.tsmiOpen.Name = "tsmiOpen";
-            this.tsmiOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.tsmiOpen.Size = new System.Drawing.Size(236, 22);
-            this.tsmiOpen.Text = "&Open archive...";
-            this.tsmiOpen.Click += new System.EventHandler(this.tsmiOpen_Click);
+            this.tsmiFileNew.Name = "tsmiFileNew";
+            this.tsmiFileNew.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.tsmiFileNew.Size = new System.Drawing.Size(236, 22);
+            this.tsmiFileNew.Text = "&New archive";
             // 
-            // tsmiSave
+            // tsmiFileOpen
             // 
-            this.tsmiSave.Name = "tsmiSave";
-            this.tsmiSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.tsmiSave.Size = new System.Drawing.Size(236, 22);
-            this.tsmiSave.Text = "&Save archive...";
-            this.tsmiSave.Click += new System.EventHandler(this.tsmiSave_Click);
+            this.tsmiFileOpen.Name = "tsmiFileOpen";
+            this.tsmiFileOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+            this.tsmiFileOpen.Size = new System.Drawing.Size(236, 22);
+            this.tsmiFileOpen.Text = "&Open archive...";
+            this.tsmiFileOpen.Click += new System.EventHandler(this.tsmiFileOpen_Click);
             // 
-            // tsmiSaveAs
+            // tsmiFileSave
             // 
-            this.tsmiSaveAs.Name = "tsmiSaveAs";
-            this.tsmiSaveAs.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            this.tsmiFileSave.Name = "tsmiFileSave";
+            this.tsmiFileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.tsmiFileSave.Size = new System.Drawing.Size(236, 22);
+            this.tsmiFileSave.Text = "&Save archive...";
+            this.tsmiFileSave.Click += new System.EventHandler(this.tsmiFileSave_Click);
+            // 
+            // tsmiFileSaveAs
+            // 
+            this.tsmiFileSaveAs.Name = "tsmiFileSaveAs";
+            this.tsmiFileSaveAs.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.S)));
-            this.tsmiSaveAs.Size = new System.Drawing.Size(236, 22);
-            this.tsmiSaveAs.Text = "Save archive &As...";
-            this.tsmiSaveAs.Click += new System.EventHandler(this.tsmiSaveAs_Click);
+            this.tsmiFileSaveAs.Size = new System.Drawing.Size(236, 22);
+            this.tsmiFileSaveAs.Text = "Save archive &As...";
+            this.tsmiFileSaveAs.Click += new System.EventHandler(this.tsmiFileSaveAs_Click);
             // 
-            // tsmiReload
+            // tsmiFileReload
             // 
-            this.tsmiReload.Name = "tsmiReload";
-            this.tsmiReload.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
-            this.tsmiReload.Size = new System.Drawing.Size(236, 22);
-            this.tsmiReload.Text = "Reload archive";
-            this.tsmiReload.Click += new System.EventHandler(this.tsmiReload_Click);
+            this.tsmiFileReload.Name = "tsmiFileReload";
+            this.tsmiFileReload.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.tsmiFileReload.Size = new System.Drawing.Size(236, 22);
+            this.tsmiFileReload.Text = "&Reload archive";
+            this.tsmiFileReload.Click += new System.EventHandler(this.tsmiFileReload_Click);
             // 
-            // tsmiExit
+            // tsmiFileClose
             // 
-            this.tsmiExit.Name = "tsmiExit";
-            this.tsmiExit.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.tsmiExit.Size = new System.Drawing.Size(236, 22);
-            this.tsmiExit.Text = "Exit";
-            this.tsmiExit.Click += new System.EventHandler(this.tsmiExit_Click);
+            this.tsmiFileClose.Name = "tsmiFileClose";
+            this.tsmiFileClose.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
+            this.tsmiFileClose.Size = new System.Drawing.Size(236, 22);
+            this.tsmiFileClose.Text = "C&lose archive";
+            this.tsmiFileClose.Click += new System.EventHandler(this.tsmiFileClose_Click);
+            // 
+            // tsmiFileExit
+            // 
+            this.tsmiFileExit.Name = "tsmiFileExit";
+            this.tsmiFileExit.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
+            this.tsmiFileExit.Size = new System.Drawing.Size(236, 22);
+            this.tsmiFileExit.Text = "E&xit";
+            this.tsmiFileExit.Click += new System.EventHandler(this.tsmiFileExit_Click);
             // 
             // tsmiArchive
             // 
             this.tsmiArchive.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmiInsert,
-            this.tsmiExtract,
-            this.tsmiDelete});
+            this.tsmiArchiveInsert,
+            this.tsmiArchiveInsertAs,
+            this.tsmiArchiveExtract,
+            this.tsmiArchiveDelete});
             this.tsmiArchive.Name = "tsmiArchive";
             this.tsmiArchive.Size = new System.Drawing.Size(59, 20);
             this.tsmiArchive.Text = "&Archive";
             // 
-            // tsmiInsert
+            // tsmiArchiveInsert
             // 
-            this.tsmiInsert.Name = "tsmiInsert";
-            this.tsmiInsert.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
-            this.tsmiInsert.Size = new System.Drawing.Size(177, 22);
-            this.tsmiInsert.Text = "&Insert file...";
-            this.tsmiInsert.Click += new System.EventHandler(this.tsmiInsert_Click);
+            this.tsmiArchiveInsert.Name = "tsmiArchiveInsert";
+            this.tsmiArchiveInsert.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
+            this.tsmiArchiveInsert.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveInsert.Text = "&Insert file...";
+            this.tsmiArchiveInsert.Click += new System.EventHandler(this.tsmiArchiveInsert_Click);
             // 
-            // tsmiExtract
+            // tsmiArchiveExtract
             // 
-            this.tsmiExtract.Name = "tsmiExtract";
-            this.tsmiExtract.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.tsmiExtract.Size = new System.Drawing.Size(177, 22);
-            this.tsmiExtract.Text = "Extract file...";
-            this.tsmiExtract.Click += new System.EventHandler(this.tsmiExtract_Click);
+            this.tsmiArchiveExtract.Name = "tsmiArchiveExtract";
+            this.tsmiArchiveExtract.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
+            this.tsmiArchiveExtract.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveExtract.Text = "&Extract file...";
+            this.tsmiArchiveExtract.Click += new System.EventHandler(this.tsmiArchiveExtract_Click);
             // 
-            // tsmiDelete
+            // tsmiArchiveDelete
             // 
-            this.tsmiDelete.Name = "tsmiDelete";
-            this.tsmiDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.tsmiDelete.Size = new System.Drawing.Size(177, 22);
-            this.tsmiDelete.Text = "Delete file";
-            this.tsmiDelete.Click += new System.EventHandler(this.tsmiDelete_Click);
+            this.tsmiArchiveDelete.Name = "tsmiArchiveDelete";
+            this.tsmiArchiveDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            this.tsmiArchiveDelete.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveDelete.Text = "&Delete file";
+            this.tsmiArchiveDelete.Click += new System.EventHandler(this.tsmiArchiveDelete_Click);
             // 
             // lbFilesList
             // 
             this.lbFilesList.AllowDrop = true;
-            this.lbFilesList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lbFilesList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.lbFilesList.FormattingEnabled = true;
             this.lbFilesList.Location = new System.Drawing.Point(12, 27);
             this.lbFilesList.Name = "lbFilesList";
@@ -173,7 +195,6 @@
             // 
             // lblFileNameVal
             // 
-            this.lblFileNameVal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFileNameVal.AutoSize = true;
             this.lblFileNameVal.Location = new System.Drawing.Point(339, 37);
             this.lblFileNameVal.Name = "lblFileNameVal";
@@ -183,7 +204,6 @@
             // 
             // lblArchiveTypeVal
             // 
-            this.lblArchiveTypeVal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblArchiveTypeVal.AutoSize = true;
             this.lblArchiveTypeVal.Location = new System.Drawing.Point(339, 53);
             this.lblArchiveTypeVal.Name = "lblArchiveTypeVal";
@@ -193,9 +213,8 @@
             // 
             // lblSelectedFile
             // 
-            this.lblSelectedFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblSelectedFile.AutoSize = true;
-            this.lblSelectedFile.Location = new System.Drawing.Point(260, 97);
+            this.lblSelectedFile.Location = new System.Drawing.Point(260, 149);
             this.lblSelectedFile.Name = "lblSelectedFile";
             this.lblSelectedFile.Size = new System.Drawing.Size(26, 13);
             this.lblSelectedFile.TabIndex = 5;
@@ -203,7 +222,6 @@
             // 
             // lblFilename
             // 
-            this.lblFilename.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFilename.AutoSize = true;
             this.lblFilename.Location = new System.Drawing.Point(260, 37);
             this.lblFilename.Name = "lblFilename";
@@ -213,7 +231,6 @@
             // 
             // LblArschiveType
             // 
-            this.LblArschiveType.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.LblArschiveType.AutoSize = true;
             this.LblArschiveType.Location = new System.Drawing.Point(260, 53);
             this.LblArschiveType.Name = "LblArschiveType";
@@ -223,9 +240,8 @@
             // 
             // lblSelectedFileVal
             // 
-            this.lblSelectedFileVal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblSelectedFileVal.AutoSize = true;
-            this.lblSelectedFileVal.Location = new System.Drawing.Point(339, 97);
+            this.lblSelectedFileVal.Location = new System.Drawing.Point(339, 149);
             this.lblSelectedFileVal.Name = "lblSelectedFileVal";
             this.lblSelectedFileVal.Size = new System.Drawing.Size(10, 13);
             this.lblSelectedFileVal.TabIndex = 5;
@@ -233,9 +249,8 @@
             // 
             // lblLocation
             // 
-            this.lblLocation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblLocation.AutoSize = true;
-            this.lblLocation.Location = new System.Drawing.Point(260, 113);
+            this.lblLocation.Location = new System.Drawing.Point(260, 165);
             this.lblLocation.Name = "lblLocation";
             this.lblLocation.Size = new System.Drawing.Size(51, 13);
             this.lblLocation.TabIndex = 5;
@@ -243,9 +258,8 @@
             // 
             // lblLocationVal
             // 
-            this.lblLocationVal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblLocationVal.AutoSize = true;
-            this.lblLocationVal.Location = new System.Drawing.Point(339, 113);
+            this.lblLocationVal.Location = new System.Drawing.Point(339, 165);
             this.lblLocationVal.Name = "lblLocationVal";
             this.lblLocationVal.Size = new System.Drawing.Size(10, 13);
             this.lblLocationVal.TabIndex = 5;
@@ -253,9 +267,8 @@
             // 
             // lblStartOffset
             // 
-            this.lblStartOffset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblStartOffset.AutoSize = true;
-            this.lblStartOffset.Location = new System.Drawing.Point(260, 129);
+            this.lblStartOffset.Location = new System.Drawing.Point(260, 181);
             this.lblStartOffset.Name = "lblStartOffset";
             this.lblStartOffset.Size = new System.Drawing.Size(61, 13);
             this.lblStartOffset.TabIndex = 5;
@@ -263,9 +276,8 @@
             // 
             // lblStartOffsetVal
             // 
-            this.lblStartOffsetVal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblStartOffsetVal.AutoSize = true;
-            this.lblStartOffsetVal.Location = new System.Drawing.Point(339, 129);
+            this.lblStartOffsetVal.Location = new System.Drawing.Point(339, 181);
             this.lblStartOffsetVal.Name = "lblStartOffsetVal";
             this.lblStartOffsetVal.Size = new System.Drawing.Size(10, 13);
             this.lblStartOffsetVal.TabIndex = 5;
@@ -273,9 +285,8 @@
             // 
             // lblFileSize
             // 
-            this.lblFileSize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFileSize.AutoSize = true;
-            this.lblFileSize.Location = new System.Drawing.Point(260, 145);
+            this.lblFileSize.Location = new System.Drawing.Point(260, 197);
             this.lblFileSize.Name = "lblFileSize";
             this.lblFileSize.Size = new System.Drawing.Size(47, 13);
             this.lblFileSize.TabIndex = 5;
@@ -283,9 +294,8 @@
             // 
             // lblFileSizeVal
             // 
-            this.lblFileSizeVal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFileSizeVal.AutoSize = true;
-            this.lblFileSizeVal.Location = new System.Drawing.Point(339, 145);
+            this.lblFileSizeVal.Location = new System.Drawing.Point(339, 197);
             this.lblFileSizeVal.Name = "lblFileSizeVal";
             this.lblFileSizeVal.Size = new System.Drawing.Size(10, 13);
             this.lblFileSizeVal.TabIndex = 5;
@@ -293,7 +303,6 @@
             // 
             // lblFilesVal
             // 
-            this.lblFilesVal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFilesVal.AutoSize = true;
             this.lblFilesVal.Location = new System.Drawing.Point(339, 69);
             this.lblFilesVal.Name = "lblFilesVal";
@@ -303,7 +312,6 @@
             // 
             // lblFiles
             // 
-            this.lblFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFiles.AutoSize = true;
             this.lblFiles.Location = new System.Drawing.Point(260, 69);
             this.lblFiles.Name = "lblFiles";
@@ -311,12 +319,41 @@
             this.lblFiles.TabIndex = 4;
             this.lblFiles.Text = "Files";
             // 
+            // lblExtraInfoVal
+            // 
+            this.lblExtraInfoVal.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblExtraInfoVal.Location = new System.Drawing.Point(339, 84);
+            this.lblExtraInfoVal.Name = "lblExtraInfoVal";
+            this.lblExtraInfoVal.Size = new System.Drawing.Size(333, 63);
+            this.lblExtraInfoVal.TabIndex = 8;
+            this.lblExtraInfoVal.Text = "-";
+            // 
+            // lblExtraInfo
+            // 
+            this.lblExtraInfo.AutoSize = true;
+            this.lblExtraInfo.Location = new System.Drawing.Point(260, 84);
+            this.lblExtraInfo.Name = "lblExtraInfo";
+            this.lblExtraInfo.Size = new System.Drawing.Size(54, 13);
+            this.lblExtraInfo.TabIndex = 9;
+            this.lblExtraInfo.Text = "Extra info:";
+            // 
+            // tsmiArchiveInsertAs
+            // 
+            this.tsmiArchiveInsertAs.Name = "tsmiArchiveInsertAs";
+            this.tsmiArchiveInsertAs.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
+            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveInsertAs.Text = "Insert file as...";
+            this.tsmiArchiveInsertAs.Click += new System.EventHandler(this.tsmiArchiveInsertAs_Click);
+            // 
             // FrmLibTool
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 461);
+            this.ClientSize = new System.Drawing.Size(684, 461);
+            this.Controls.Add(this.lblExtraInfoVal);
+            this.Controls.Add(this.lblExtraInfo);
             this.Controls.Add(this.lblFileSizeVal);
             this.Controls.Add(this.lblStartOffsetVal);
             this.Controls.Add(this.lblLocationVal);
@@ -335,9 +372,10 @@
             this.Controls.Add(this.menuStrip1);
             this.Icon = global::LibrarianTool.Properties.Resources.LibrarianIcon;
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(350, 230);
+            this.MinimumSize = new System.Drawing.Size(430, 230);
             this.Name = "FrmLibTool";
             this.Text = "Librarian";
+            this.Shown += new System.EventHandler(this.FrmLibTool_Shown);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Frm_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Frm_DragEnter);
             this.menuStrip1.ResumeLayout(false);
@@ -351,13 +389,13 @@
 
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem tsmiFile;
-        private System.Windows.Forms.ToolStripMenuItem tsmiOpen;
-        private System.Windows.Forms.ToolStripMenuItem tsmiSave;
-        private System.Windows.Forms.ToolStripMenuItem tsmiReload;
-        private System.Windows.Forms.ToolStripMenuItem tsmiExit;
+        private System.Windows.Forms.ToolStripMenuItem tsmiFileOpen;
+        private System.Windows.Forms.ToolStripMenuItem tsmiFileSave;
+        private System.Windows.Forms.ToolStripMenuItem tsmiFileReload;
+        private System.Windows.Forms.ToolStripMenuItem tsmiFileExit;
         private System.Windows.Forms.ToolStripMenuItem tsmiArchive;
-        private System.Windows.Forms.ToolStripMenuItem tsmiInsert;
-        private System.Windows.Forms.ToolStripMenuItem tsmiDelete;
+        private System.Windows.Forms.ToolStripMenuItem tsmiArchiveInsert;
+        private System.Windows.Forms.ToolStripMenuItem tsmiArchiveDelete;
         private System.Windows.Forms.ListBox lbFilesList;
         private System.Windows.Forms.Label lblFileNameVal;
         private System.Windows.Forms.Label lblArchiveTypeVal;
@@ -371,10 +409,15 @@
         private System.Windows.Forms.Label lblStartOffsetVal;
         private System.Windows.Forms.Label lblFileSize;
         private System.Windows.Forms.Label lblFileSizeVal;
-        private System.Windows.Forms.ToolStripMenuItem tsmiExtract;
-        private System.Windows.Forms.ToolStripMenuItem tsmiSaveAs;
+        private System.Windows.Forms.ToolStripMenuItem tsmiArchiveExtract;
+        private System.Windows.Forms.ToolStripMenuItem tsmiFileSaveAs;
         private System.Windows.Forms.Label lblFilesVal;
         private System.Windows.Forms.Label lblFiles;
+        private System.Windows.Forms.ToolStripMenuItem tsmiFileNew;
+        private System.Windows.Forms.ToolStripMenuItem tsmiFileClose;
+        private System.Windows.Forms.Label lblExtraInfoVal;
+        private System.Windows.Forms.Label lblExtraInfo;
+        private System.Windows.Forms.ToolStripMenuItem tsmiArchiveInsertAs;
     }
 }
 

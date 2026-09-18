@@ -4,13 +4,33 @@ Librarian
 Librarian is a simple game archive management tool.
 
 It was originally created for the Mythos LIB archives, but support for more
-archives (including Westwood PAK, and maybe even MIX) will be added eventually.
+archives was added later. Currently supported archives:
 
-WARNING: At this moment, the tool does not have ANY error feedback, and will
-always fail silently! I'll get on that later.
+-Mythos Software LIB v1
+-Mythos Software LIB v2
+-Westwood Studios PAK v1
+-Westwood Studios PAK v2
+-Westwood Studios PAK v3
+-Sierry/Dynamix archives v1
+-Sierry/Dynamix archives v2 (read-only)
+-Ren'Py archives (read-only)
+-Interactive Girls Club M3/SLB archives
+
 
 Version history:
 ---------------
+
+v1.0.2: (14/07/2019 12:10)
+-Added support for Interactive Girls M3/SLB archives.
+
+v1.0.1: (28/05/2019 10:35)
+-Added error feedback on failures.
+-Added reading and writing for Westwood PAK archives.
+-Added reading and writing for Sierry/Dynamix v1 archives.
+-Added read functionality for Sierry/Dynamix v2 archives.
+-Added "insert as" functionality.
+-Added read functionality for Ren'Py archives.
+-Unusable menu functions are disabled if no file is loaded.
 
 v1.0.0: (25/01/2019 12:05)
 -All basic functionality implemented for Mythos LIB v1 and v2.

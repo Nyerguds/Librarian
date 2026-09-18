@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
+using Nyerguds.Util;
 
 namespace LibrarianTool.Domain
 {
@@ -12,21 +12,22 @@ namespace LibrarianTool.Domain
         public override String ShortTypeName { get { return "Mythos LIB Archive v2"; } }
         public override String ShortTypeDescription { get { return "Mythos LIB v2"; } }
 
-        public override Boolean LoadArchive(Stream loadStream, String archivePath)
+        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
         {
-            this.FileName = archivePath;
             Int32 files = GetFilesCount(loadStream, IdBytesLic);
-            if (files == -1)
-                return false;
-            loadStream.Position += 8 * (files + 1);
-            return LoadArchive(loadStream, files, archivePath);
+            Int32 skip = 8 * (files + 1);
+            if (loadStream.Position + skip >= loadStream.Length)
+                throw new FileTypeLoadException("File too short for full header.");
+            // Load of junk. No idea what it is.
+            loadStream.Position += skip;
+            this.LoadLibArchive(loadStream, files, archivePath);
         }
 
         public override Boolean SaveArchive(Archive archive, Stream saveStream)
         {
-            SaveHeader(archive, saveStream, IdBytesLic);
+            this.SaveHeader(archive, saveStream, IdBytesLic);
             saveStream.Position += 8 * (archive.FilesList.Count + 1);
-            return SaveFiles(archive, saveStream);
+            return this.SaveLibArchive(archive, saveStream);
         }
     }
 }

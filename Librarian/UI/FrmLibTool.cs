@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using LibrarianTool.Domain;
 using Nyerguds.Util;
@@ -16,24 +13,104 @@ namespace LibrarianTool
 {
     public partial class FrmLibTool : Form
     {
+        public delegate void InvokeDelegateReload(Archive newFile, Boolean asNew, Boolean resetZoom);
+        public delegate DialogResult InvokeDelegateMessageBox(String message, MessageBoxButtons buttons, MessageBoxIcon icon);
+        public delegate DialogResult InvokeDelegateMessageBoxDef(String message, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defButtons);
+        public delegate void InvokeDelegateTwoArgs(Object arg1, Object arg2);
+        public delegate void InvokeDelegateSingleArg(Object value);
+        public delegate void InvokeDelegateEnableControls(Boolean enabled, String processingLabel);
+
         private const String PROG_NAME = "Librarian";
         private const String PROG_AUTHOR = "Created by Nyerguds";
 
+        protected readonly String m_ProgFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         protected String m_LastOpenedFolder;
         protected Archive m_LoadedArchive;
+        protected List<ArchiveEntry> m_FilesListOrigState;
+        protected String argFile;
+
+        public FrmLibTool(String[] args)
+            :this()
+        {
+            if (args.Length > 0 && File.Exists(args[0]))
+                argFile = args[0];
+        }
 
         public FrmLibTool()
         {
             this.InitializeComponent();
-            this.Text = GetTitle(true);
+            AddNewTypes();
+            m_LastOpenedFolder = m_ProgFolder;
+            this.Text = this.GetTitle(true, true);
+        }
+
+        public String GetTitle(Boolean withAuthor, Boolean withLoadedArchive)
+        {
+            StringBuilder title = GetTitleBuilder(withAuthor);
+            if (withLoadedArchive && m_LoadedArchive != null)
+            {
+                title.Append(" - ");
+                if (m_LoadedArchive.FileName == null)
+                    title.Append("New archive");
+                else
+                    title.Append("\"").Append(Path.GetFileName(m_LoadedArchive.FileName)).Append("\"");
+                if (IsArchiveModified())
+                    title.Append(" *");
+                title.Append(" (").Append(m_LoadedArchive.ShortTypeDescription).Append(")");
+            }
+            return title.ToString();
         }
 
         public static String GetTitle(Boolean withAuthor)
         {
-            String title = PROG_NAME + " " + GeneralUtils.ProgramVersion();
+            return GetTitleBuilder(withAuthor).ToString();
+        }
+
+        public static StringBuilder GetTitleBuilder(Boolean withAuthor)
+        {
+            StringBuilder title = new StringBuilder(PROG_NAME);
+            title.Append(" ").Append(GeneralUtils.ProgramVersion());
             if (withAuthor)
-                title += " - " + PROG_AUTHOR;
+                title.Append(" - ").Append(PROG_AUTHOR);
             return title;
+        }
+
+        private void AddNewTypes()
+        {
+            foreach (Type type in Archive.SupportedTypes)
+            {
+                Archive archInstance = null;
+                try { archInstance = (Archive)Activator.CreateInstance(type); }
+                catch { /* Ignore; programmer error. */ }
+                if (archInstance == null || !archInstance.CanSave)
+                    continue;
+                ToolStripMenuItem archtypeMenu = new ToolStripMenuItem();
+                archtypeMenu.Text = archInstance.ShortTypeDescription;
+                archtypeMenu.Tag = type;
+                archtypeMenu.Click += this.NewFileClick;
+                tsmiFileNew.DropDownItems.Add(archtypeMenu);
+            }
+        }
+
+        private void NewFileClick(Object sender, EventArgs e)
+        {
+            ToolStripMenuItem tsmi = sender as ToolStripMenuItem;
+            Type type;
+            if (tsmi == null || (type = tsmi.Tag as Type) == null)
+                return;
+            Archive archInstance;
+            try { archInstance = (Archive)Activator.CreateInstance(type); }
+            catch { return; }
+            LoadArchive(archInstance, true);
+        }
+
+
+        private void FrmLibTool_Shown(Object sender, EventArgs e)
+        {
+            if (argFile != null)
+                this.DetectArchive(argFile, true);
+            else
+                LoadArchive(null, false);
         }
 
         private void Frm_DragEnter(Object sender, DragEventArgs e)
@@ -49,11 +126,10 @@ namespace LibrarianTool
                 return;
             String path = files[0];
             this.m_LastOpenedFolder = Path.GetDirectoryName(path);
-            Archive version = this.DetectArchive(path);
+            Archive version = this.DetectArchive(path, true);
             if (version != null)
-                this.LoadArchive(version);
+                this.LoadArchive(version, true);
         }
-
 
         private void Lv_DragEnter(Object sender, DragEventArgs e)
         {
@@ -66,18 +142,15 @@ namespace LibrarianTool
             String[] files = (String[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length == 0)
                 return;
-            if (files.Length == 1)
+            if (this.m_LoadedArchive == null)
             {
-                String path = files[0];
-                Archive archive = this.DetectArchive(path);
-                if (archive != null)
-                {
-                    this.LoadArchive(archive);
-                    this.m_LastOpenedFolder = Path.GetDirectoryName(path);
-                    return;
-                }
+                const String message = "No archive has been opened.\n\n" +
+                                       "To make a new archive, use the \"New archive\" function in the menu.\n\n" +
+                                       "To open an archive, drop it into the area outside the files list.";
+                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            this.AddFiles(files);
+            else
+                this.AddFiles(files);
         }
 
         private void AddFiles(String[] files)
@@ -88,35 +161,90 @@ namespace LibrarianTool
                 this.m_LoadedArchive = new ArchiveLibV1();
             foreach (String file in files)
                 this.m_LoadedArchive.InsertFile(file);
-            this.LoadArchive(this.m_LoadedArchive);
+            this.LoadArchive(this.m_LoadedArchive, false);
         }
 
-        private Archive DetectArchive(String path)
+        private Archive DetectArchive(String path, Boolean showErrors)
+        {
+            return DetectArchive(path, null, showErrors);
+        }
+
+        private Archive DetectArchive(String path, Archive[] specificOpenTypes, Boolean showErrors)
         {
             try
             {
+                Archive archive;
+                List<FileTypeLoadException> loadErrors;
                 using (FileStream fs = new FileStream(path, FileMode.Open))
-                    return Archive.LoadArchive(path, fs);
+                    archive = Archive.LoadArchiveAutodetect(fs, path, specificOpenTypes, specificOpenTypes != null, out loadErrors);
+                if (archive != null)
+                    return archive;
+                if (loadErrors != null && loadErrors.Count > 0 && showErrors)
+                {
+                    String errors = String.Join("\n", loadErrors.Select(er => er.AttemptedLoadedType + ": " + er.Message).ToArray());
+                    String filename = path == null ? String.Empty : (" of \"" + Path.GetFileName(path) + "\"");
+                    String message = "File type of " + filename + " could not be identified. Errors returned by all attempts:\n\n" + errors;
+                    this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
-            catch { return null; }
+            catch (Exception e)
+            {
+                if (showErrors)
+                    this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), e.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            return null;
         }
 
-        private void LoadArchive(Archive archive)
+        private void LoadArchive(Archive archive, Boolean refreshState)
         {
             this.m_LoadedArchive = archive;
-            this.lblFileNameVal.Text = archive == null ? "No file loaded" : Path.GetFileName(archive.FileName);
-            this.lblArchiveTypeVal.Text = archive == null ? "-" : archive.ShortTypeName;
-            this.lblFilesVal.Text = archive == null ? "-" : archive.FilesList.Count.ToString();
+            Boolean loaded = archive != null;
+            this.m_LastOpenedFolder = loaded ? Path.GetDirectoryName(archive.FileName) ?? m_ProgFolder : m_ProgFolder;
+            if (refreshState)
+                m_FilesListOrigState = loaded ? archive.FilesList.ToList() : null;
+            this.lblFileNameVal.Text = loaded ? Path.GetFileName(archive.FileName) : "No file loaded";
+            this.lblArchiveTypeVal.Text = loaded ? archive.ShortTypeName : "-";
+            this.lblFilesVal.Text = loaded ? archive.FilesList.Count.ToString() : "-";
+            this.lblExtraInfoVal.Text = loaded && archive.ExtraInfo != null ? archive.ExtraInfo : "-";
             this.lbFilesList.Items.Clear();
-            if (archive != null)
+            this.tsmiFileSave.Enabled = loaded;
+            this.tsmiFileSaveAs.Enabled = loaded;
+            this.tsmiFileReload.Enabled = loaded;
+            this.tsmiFileClose.Enabled = loaded;
+            this.tsmiArchiveInsert.Enabled = loaded;
+            this.tsmiArchiveInsertAs.Enabled = loaded;
+            this.tsmiArchiveDelete.Enabled = loaded;
+            if (loaded)
                 foreach (ArchiveEntry entry in archive.FilesList)
                     this.lbFilesList.Items.Add(entry);
+            this.RefreshSidebarFileInfo();
+            this.Text = this.GetTitle(true, true);
+        }
+
+        private Boolean IsArchiveModified()
+        {
+            if (m_LoadedArchive == null)
+                return false;
+            List<ArchiveEntry> curState = m_LoadedArchive.FilesList.OrderBy(x => x.FileName).ToList();
+            List<ArchiveEntry> origState = m_FilesListOrigState.OrderBy(x => x.FileName).ToList();
+            if (curState.Count != origState.Count)
+                return true;
+            for (Int32 i = 0; i < curState.Count; i++)
+                if (!curState[i].Equals(origState[i]))
+                    return true;
+            return false;
         }
 
         private void lbFilesList_SelectedIndexChanged(Object sender, EventArgs e)
         {
-            Int32 selected = this.lbFilesList.SelectedIndices.Count;
+            RefreshSidebarFileInfo();
+        }
 
+        private void RefreshSidebarFileInfo()
+        {
+            Int32 selected = this.lbFilesList.SelectedIndices.Count;
+            tsmiArchiveExtract.Enabled = selected > 0;
+            tsmiArchiveDelete.Enabled = selected > 0;
             if (selected > 1)
                 this.lblSelectedFileVal.Text = "Multiple selected";
             if (selected == 0)
@@ -133,9 +261,24 @@ namespace LibrarianTool
                 return;
             this.lblSelectedFileVal.Text = entry.FileName;
             Boolean isInserted = entry.PhysicalPath != null;
-            this.lblLocationVal.Text = isInserted ? "On disk" :  "In archive";
-            this.lblStartOffsetVal.Text = isInserted ? "-" : entry.StartOffset.ToString();
-            this.lblFileSizeVal.Text = isInserted ? "-" : entry.Length.ToString();
+            String lengthStr;
+            Boolean accessible = true;
+            if (isInserted)
+            {
+                try { lengthStr = new FileInfo(entry.PhysicalPath).Length.ToString(); }
+                catch
+                {
+                    lengthStr = "?";
+                    accessible = false;
+                }
+            }
+            else
+                lengthStr = entry.Length.ToString();
+            this.lblLocationVal.Text = isInserted ? entry.PhysicalPath : "In archive";
+            this.lblStartOffsetVal.Text = isInserted ? (accessible ? "0" : "?") : entry.StartOffset.ToString();
+            this.lblFileSizeVal.Text = lengthStr;
+            if(!accessible)
+                this.DeleteFileFromArchive(entry.FileName + " appears to be missing! Remove entry from the list?", true);
         }
 
         protected override Boolean ProcessCmdKey(ref Message msg, Keys keyData)
@@ -155,37 +298,32 @@ namespace LibrarianTool
             return true;
         }
 
-        private void tsmiOpen_Click(Object sender, EventArgs e)
+        private void tsmiFileOpen_Click(Object sender, EventArgs e)
         {
             //if (this.AbortForChangesAskSave(QUESTION_SAVEFILE_OPENNEW))
             //    return;
             Archive selectedItem;
-            String filename = FileDialogGenerator.ShowOpenFileFialog(this, Archive.SupportedTypes, this.m_LastOpenedFolder, "archives", "lib", out selectedItem);
+            String filename = FileDialogGenerator.ShowOpenFileFialog(this, GetTitle(false), Archive.SupportedTypes, this.m_LastOpenedFolder, "archives", null, out selectedItem);
             if (filename == null)
                 return;
-            if (selectedItem != null && selectedItem.LoadArchive(filename))
-            {
-                this.LoadArchive(selectedItem);
-                return;
-            }
-            Archive archive;
-            using (FileStream fs = new FileStream(filename, FileMode.Open))
-                archive = Archive.LoadArchive(filename, fs);
+            
+            Archive[] preferredType = selectedItem == null ? null : new Archive[] {selectedItem};
+            Archive archive = DetectArchive(filename, preferredType, true);
             if (archive != null)
-                this.LoadArchive(archive);
+                this.LoadArchive(archive, true);
         }
 
-        private void tsmiSave_Click(Object sender, EventArgs e)
+        private void tsmiFileSave_Click(Object sender, EventArgs e)
         {
-            this.Save();
+            this.SaveArchive();
         }
 
-        private void tsmiSaveAs_Click(Object sender, EventArgs e)
+        private void tsmiFileSaveAs_Click(Object sender, EventArgs e)
         {
-            this.SaveAs();
+            this.SaveArchiveAs();
         }
 
-        private void tsmiReload_Click(object sender, EventArgs e)
+        private void tsmiFileReload_Click(Object sender, EventArgs e)
         {
             if (this.m_LoadedArchive == null)
                 return;
@@ -195,15 +333,20 @@ namespace LibrarianTool
 
             using (FileStream fs = new FileStream(filename, FileMode.Open))
                 this.m_LoadedArchive.LoadArchive(fs, filename);
-            this.LoadArchive(this.m_LoadedArchive);
+            this.LoadArchive(this.m_LoadedArchive, true);
         }
 
-        private void tsmiExit_Click(Object sender, EventArgs e)
+        private void tsmiFileClose_Click(Object sender, EventArgs e)
+        {
+            LoadArchive(null, true);
+        }
+
+        private void tsmiFileExit_Click(Object sender, EventArgs e)
         {
             this.Close();
         }
 
-        private void tsmiInsert_Click(Object sender, EventArgs e)
+        private void tsmiArchiveInsert_Click(Object sender, EventArgs e)
         {
             OpenFileDialog sfd = new OpenFileDialog();
             sfd.InitialDirectory = m_LastOpenedFolder;
@@ -211,7 +354,22 @@ namespace LibrarianTool
                 AddFiles(new String[] {sfd.FileName});
         }
 
-        private void tsmiExtract_Click(Object sender, EventArgs e)
+        private void tsmiArchiveInsertAs_Click(Object sender, EventArgs e)
+        {
+            OpenFileDialog sfd = new OpenFileDialog();
+            sfd.InitialDirectory = m_LastOpenedFolder;
+            if (sfd.ShowDialog(this) != DialogResult.OK)
+                return;
+            String path = InputBox.Show("Filename in archive:", "Give filename", Path.GetFileName(sfd.FileName));
+            if (path == null)
+                return;
+            if (this.m_LoadedArchive == null)
+                this.m_LoadedArchive = new ArchiveLibV1();
+            this.m_LoadedArchive.InsertFile(sfd.FileName, path);
+            this.LoadArchive(this.m_LoadedArchive, false);
+        }
+
+        private void tsmiArchiveExtract_Click(Object sender, EventArgs e)
         {
             if (m_LoadedArchive == null || lbFilesList.SelectedItems.Count == 0)
                 return;
@@ -224,19 +382,20 @@ namespace LibrarianTool
                 sfd.FileName = entry.FileName;
                 sfd.InitialDirectory = m_LastOpenedFolder;
                 if (sfd.ShowDialog(this) == DialogResult.OK)
+                {
+                    m_LastOpenedFolder = Path.GetDirectoryName(sfd.FileName);
                     m_LoadedArchive.ExtractFile(entry.FileName, sfd.FileName);
+                }
             }
             else
             {
                 FolderBrowserDialog fbd = new FolderBrowserDialog();
-                //fbd.RootFolder = Environment.SpecialFolder.MyComputer;
-                if (m_LastOpenedFolder == null)
-                    m_LastOpenedFolder = Environment.GetFolderPath((Environment.SpecialFolder.MyComputer));
                 fbd.SelectedPath = m_LastOpenedFolder;
                 fbd.ShowNewFolderButton = true;
                 if (fbd.ShowDialog(this) == DialogResult.OK)
                 {
                     String path = fbd.SelectedPath;
+                    m_LastOpenedFolder = fbd.SelectedPath;
                     String[] filenames = this.lbFilesList.SelectedItems.Cast<ArchiveEntry>().Select(en => en.FileName).ToArray();
                     foreach (String filename in filenames)
                         m_LoadedArchive.ExtractFile(filename, Path.Combine(path, filename));
@@ -244,30 +403,48 @@ namespace LibrarianTool
             }
         }
 
-        private void tsmiDelete_Click(Object sender, EventArgs e)
+        private void tsmiArchiveDelete_Click(Object sender, EventArgs e)
         {
             if (m_LoadedArchive == null || lbFilesList.SelectedItems.Count == 0)
                 return;
+            String question = "Remove ";
+            if (lbFilesList.SelectedItems.Count == 1)
+                question += "\"" + ((ArchiveEntry) lbFilesList.SelectedItem).FileName + "\"?";
+            else
+                question += lbFilesList.SelectedItems.Count + " items?";
+            this.DeleteFileFromArchive(question, false);
+        }
+        
+        private void DeleteFileFromArchive(String question, Boolean useYesNo)
+        {
+            if (m_LoadedArchive == null || lbFilesList.SelectedItems.Count == 0)
+                return;
+            DialogResult dr = (DialogResult)this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox),
+                question, (useYesNo ? MessageBoxButtons.YesNo : MessageBoxButtons.OKCancel), MessageBoxIcon.Information);
+            if ((useYesNo ? DialogResult.Yes : DialogResult.OK) != dr)
+                return;
             foreach (ArchiveEntry entry in lbFilesList.SelectedItems)
                 this.m_LoadedArchive.FilesList.Remove(entry);
-            this.LoadArchive(this.m_LoadedArchive);
+            this.LoadArchive(this.m_LoadedArchive, false);
         }
 
-        private void Save()
+        private void SaveArchive()
         {
-            if (this.m_LoadedArchive == null || this.m_LoadedArchive.FileName == null)
-                this.SaveAs();
+            if (this.m_LoadedArchive == null)
+                return;
+            if (this.m_LoadedArchive.FileName == null)
+                this.SaveArchiveAs();
             else
                 this.SaveArchive(this.m_LoadedArchive, this.m_LoadedArchive.FileName);
         }
 
-        private void SaveAs()
+        private void SaveArchiveAs()
         {
             if (this.m_LoadedArchive == null)
                 return;
             Archive selectedItem;
-            String suggestedfilename = this.m_LoadedArchive.FileName ?? "archive.lib" + (this.m_LoadedArchive.FileExtensions.FirstOrDefault() ?? "lib");
-            String filename = FileDialogGenerator.ShowSaveFileFialog(this, this.m_LoadedArchive.GetType(), Archive.SupportedTypes, typeof(ArchiveLibV1), true, suggestedfilename, out selectedItem);
+            String suggestedfilename = this.m_LoadedArchive.FileName ?? Path.Combine(m_LastOpenedFolder, "archive." + (this.m_LoadedArchive.FileExtensions.FirstOrDefault() ?? "lib").ToLowerInvariant());
+            String filename = FileDialogGenerator.ShowSaveFileFialog(this, this.m_LoadedArchive.GetType(), Archive.SupportedSaveTypes, false, true, suggestedfilename, out selectedItem);
             if (filename == null || selectedItem == null)
                 return;
             this.SaveArchive(selectedItem, filename);
@@ -275,14 +452,39 @@ namespace LibrarianTool
 
         private void SaveArchive(Archive archiveType, String filename)
         {
-            archiveType.SaveArchive(this.m_LoadedArchive, filename);
+            try
+            {
+                archiveType.SaveArchive(this.m_LoadedArchive, filename);
+            }
+            catch (NotSupportedException e)
+            {
+                // No stack trace; just show the message.
+                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), e.Message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            catch (Exception e)
+            {
+                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), e.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             if (filename == this.m_LoadedArchive.FileName)
             {
-                Archive archive;
                 using (FileStream fs = new FileStream(filename, FileMode.Open))
-                    archive = Archive.LoadArchive(filename, fs);
-                this.LoadArchive(archive);
+                    archiveType.LoadArchive(fs, filename);
+                this.LoadArchive(archiveType, true);
             }
+        }
+
+        private DialogResult ShowMessageBox(String message, MessageBoxButtons buttons, MessageBoxIcon icon)
+        {
+            return ShowMessageBox(message, buttons, icon, MessageBoxDefaultButton.Button1);
+        }
+
+        private DialogResult ShowMessageBox(String message, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defButtons)
+        {
+            if (message == null)
+                return buttons == MessageBoxButtons.YesNo ? DialogResult.No : (buttons == MessageBoxButtons.OK ? DialogResult.OK : DialogResult.Cancel);
+            return MessageBox.Show(this, message, GetTitle(false), buttons, icon, defButtons);
         }
 
     }

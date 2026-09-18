@@ -12,10 +12,6 @@ namespace Nyerguds.Util
         String[] FileExtensions { get; }
         /// <summary>Brief name and description of the specific types for all extensions, for the types dropdown in the save file dialog.</summary>
         String[] DescriptionsForExtensions { get; }
-        /// <summary>File extension set for this specific file. To be used to identify the item chosen in a Save dialog.</summary>
-        String FileExtension { get; set; }
-        /// <summary>Supported types can always be loaded, but this indicates if save functionality to this type is also available.</summary>
-        Boolean CanSave { get; }
     }
 
     /// <summary>File Load exceptions. These are typically ignored in favour of checking the next type to try.</summary>
