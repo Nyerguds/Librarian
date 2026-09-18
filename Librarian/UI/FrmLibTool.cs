@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using LibrarianTool.Domain;
 using Nyerguds.Util;
 using Nyerguds.Util.UI;
+using System.ComponentModel;
 
 namespace LibrarianTool
 {
@@ -213,7 +214,8 @@ namespace LibrarianTool
             this.tsmiFileClose.Enabled = loaded;
             this.tsmiArchiveInsert.Enabled = loaded;
             this.tsmiArchiveInsertAs.Enabled = loaded;
-            this.tsmiArchiveDelete.Enabled = loaded;
+            this.tsmiArchiveDelete.Enabled = false;
+            this.tsmiArchiveExtract.Enabled = false;
             if (loaded)
                 foreach (ArchiveEntry entry in archive.FilesList)
                     this.lbFilesList.Items.Add(entry);
@@ -307,7 +309,7 @@ namespace LibrarianTool
             //if (this.AbortForChangesAskSave(QUESTION_SAVEFILE_OPENNEW))
             //    return;
             Archive selectedItem;
-            String filename = FileDialogGenerator.ShowOpenFileFialog(this, GetTitle(false), Archive.SupportedTypes, this.m_LastOpenedFolder, "archives", null, out selectedItem);
+            String filename = FileDialogGenerator.ShowOpenFileFialog(this, GetTitle(false), Archive.SupportedTypes, this.m_LastOpenedFolder, "archives", null, true, out selectedItem);
             if (filename == null)
                 return;
             
@@ -396,7 +398,8 @@ namespace LibrarianTool
                 FolderBrowserDialog fbd = new FolderBrowserDialog();
                 fbd.SelectedPath = m_LastOpenedFolder;
                 fbd.ShowNewFolderButton = true;
-                if (fbd.ShowDialog(this) == DialogResult.OK)
+                DialogResult res = FolderBrowserLauncher.ShowFolderBrowser(fbd, true, this);
+                if (res == DialogResult.OK)
                 {
                     String path = fbd.SelectedPath;
                     m_LastOpenedFolder = fbd.SelectedPath;
@@ -448,7 +451,7 @@ namespace LibrarianTool
                 return;
             Archive selectedItem;
             String suggestedfilename = this.m_LoadedArchive.FileName ?? Path.Combine(m_LastOpenedFolder, "archive." + (this.m_LoadedArchive.FileExtensions.FirstOrDefault() ?? "lib").ToLowerInvariant());
-            String filename = FileDialogGenerator.ShowSaveFileFialog(this, this.m_LoadedArchive.GetType(), Archive.SupportedSaveTypes, false, true, suggestedfilename, out selectedItem);
+            String filename = FileDialogGenerator.ShowSaveFileFialog(this, this.m_LoadedArchive.GetType(), Archive.SupportedSaveTypes, m_LoadedArchive.GetType(), false, true, suggestedfilename, out selectedItem);
             if (filename == null || selectedItem == null)
                 return;
             this.SaveArchive(selectedItem, filename);
@@ -489,6 +492,29 @@ namespace LibrarianTool
             if (message == null)
                 return buttons == MessageBoxButtons.YesNo ? DialogResult.No : (buttons == MessageBoxButtons.OK ? DialogResult.OK : DialogResult.Cancel);
             return MessageBox.Show(this, message, GetTitle(false), buttons, icon, defButtons);
+        }
+        
+        private void lbFilesList_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right)
+                return;
+            ContextMenu cm = new ContextMenu();
+            MenuItem cmInsert = new MenuItem(tsmiArchiveInsert.Text, tsmiArchiveInsert_Click);
+            MenuItem cmInsertAs = new MenuItem(tsmiArchiveInsertAs.Text, tsmiArchiveInsertAs_Click);
+            MenuItem cmExtract = new MenuItem(tsmiArchiveExtract.Text, tsmiArchiveExtract_Click);
+            MenuItem cmDelete = new MenuItem(tsmiArchiveDelete.Text, tsmiArchiveDelete_Click);
+
+            Boolean loaded = this.m_LoadedArchive != null;
+            Boolean selected = this.lbFilesList.SelectedIndices.Count > 0;
+            cmInsert.Enabled = loaded;
+            cmInsertAs.Enabled = loaded;
+            cmDelete.Enabled = selected;
+            cmExtract.Enabled = selected;
+            cm.MenuItems.Add(cmInsert);
+            cm.MenuItems.Add(cmInsertAs);
+            cm.MenuItems.Add(cmDelete);
+            cm.MenuItems.Add(cmExtract);
+            cm.Show(lbFilesList, e.Location);
         }
 
     }

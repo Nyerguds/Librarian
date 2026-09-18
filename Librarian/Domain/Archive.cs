@@ -8,7 +8,7 @@ using Nyerguds.Util.UI;
 
 namespace LibrarianTool.Domain
 {
-    public abstract class Archive : FileTypeBroadcaster
+    public abstract class Archive : IFileTypeBroadcaster
     {
         public abstract String ShortTypeName { get; }
         public abstract String ShortTypeDescription { get; }
@@ -358,20 +358,32 @@ namespace LibrarianTool.Domain
             }
         }
 
+        /// <summary>
+        /// List of supported file types, to be used UI listings of file types
+        /// that can be opened. Whether the type can be saved can be checked
+        /// by creating an object of the type and requesting its "CanSave"
+        /// property.
+        /// </summary>
         public static Type[] SupportedTypes =
         {
+            typeof(ArchiveDynV1),
+            typeof(ArchiveDynV2),
             typeof(ArchiveLibV1),
             typeof(ArchiveLibV2),
+            typeof(ArchiveM3),
             typeof(ArchivePakV1),
             typeof(ArchivePakV2),
             typeof(ArchivePakV3),
-            typeof(ArchiveDynV1),
-            typeof(ArchiveDynV2),
             typeof(ArchiveRenpy),
-            typeof(ArchiveM3),
 			typeof(ArchiveSndKort),
         };
 
+        /// <summary>
+        /// List used for the auto-detection of archive types. This is
+        /// generally not the same order as the SupportedTypes one, since
+        /// auto-detect should be done from most complex to least complex file
+        /// type, to avoid false positives and ensure accurate detection.
+        /// </summary>
         public static Type[] AutoDetectTypes =
         {
             typeof(ArchiveRenpy),

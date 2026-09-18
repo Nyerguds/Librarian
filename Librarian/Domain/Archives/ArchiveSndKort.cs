@@ -76,9 +76,9 @@ namespace LibrarianTool.Domain.Archives
 				Byte[] buff = new Byte[8];
 				loadStream.Position = offset;
 				loadStream.Read(buff, 0, buff.Length);
-				if (Encoding.ASCII.GetString(buff, 0, 4).Equals("CTMF") && ArrayUtils.ReadIntFromByteArray(buff, 4, 4, true) == 0x00280101)
+				if (Encoding.ASCII.GetString(buff, 0, 4).Equals("CTMF"))
 				{
-					sbExtraInfo.Append("\nType: CTMF");
+                    sbExtraInfo.Append("\nType: Creative Music Format");
 				}
 			}
 			loadStream.Position = savedPos;

@@ -88,9 +88,10 @@
     <Compile Include="Domain\GameData\Dynamix\DynamixLzHuffDecoder.cs" />
     <Compile Include="Domain\GameData\Dynamix\DynamixLzwDecoder.cs" />
     <Compile Include="Domain\GameData\Dynamix\DynamixLzwEncoder.cs" />
-    <Compile Include="Domain\FileTypeBroadcaster.cs" />
+    <Compile Include="Domain\IFileTypeBroadcaster.cs" />
     <Compile Include="Domain\GameData\LzwCompression.cs" />
     <Compile Include="Domain\GameData\RleCompression.cs" />
+    <Compile Include="UI\Tools\FolderBrowserLauncher.cs" />
     <Compile Include="Domain\Utils\GeneralUtils.cs" />
     <Compile Include="Domain\HashType.cs" />
     <Compile Include="Domain\Utils\ArrayUtils.cs" />
@@ -144,6 +145,7 @@
     <Content Include="Librarian.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="license.txt" />
     <Content Include="Resources\application-list.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

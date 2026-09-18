@@ -14,8 +14,7 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeName { get { return "Mythos LIB Archive v1"; } }
         public override String ShortTypeDescription { get { return "Mythos LIB v1"; } }
         public override String[] FileExtensions { get { return new String[] { "LIB" }; } }
-
-
+        
         protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             Int32 files = this.GetFilesCount(loadStream, IdBytesLib);
@@ -51,7 +50,7 @@ namespace LibrarianTool.Domain.Archives
             //Console.Write("Reading archive entries...");
             for (Int32 i = 0; i < fileEntries; i++)
             {
-                if (loadStream.Position + fileEntryLength < end)
+                if (loadStream.Position + fileEntryLength > end)
                     throw new FileTypeLoadException("File too short for full header.");
                 loadStream.Read(buffer, 0, fileEntryLength);
                 String curName = enc.GetString(buffer.Take(13).TakeWhile(x => x != 0).ToArray()).Trim();

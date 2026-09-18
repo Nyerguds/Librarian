@@ -162,7 +162,7 @@
             // 
             this.tsmiArchiveInsert.Name = "tsmiArchiveInsert";
             this.tsmiArchiveInsert.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
-            this.tsmiArchiveInsert.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveInsert.Size = new System.Drawing.Size(186, 22);
             this.tsmiArchiveInsert.Text = "&Insert file...";
             this.tsmiArchiveInsert.Click += new System.EventHandler(this.tsmiArchiveInsert_Click);
             // 
@@ -170,7 +170,7 @@
             // 
             this.tsmiArchiveInsertAs.Name = "tsmiArchiveInsertAs";
             this.tsmiArchiveInsertAs.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
-            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(186, 22);
             this.tsmiArchiveInsertAs.Text = "Insert file as...";
             this.tsmiArchiveInsertAs.Click += new System.EventHandler(this.tsmiArchiveInsertAs_Click);
             // 
@@ -178,7 +178,7 @@
             // 
             this.tsmiArchiveExtract.Name = "tsmiArchiveExtract";
             this.tsmiArchiveExtract.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.tsmiArchiveExtract.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveExtract.Size = new System.Drawing.Size(186, 22);
             this.tsmiArchiveExtract.Text = "&Extract file...";
             this.tsmiArchiveExtract.Click += new System.EventHandler(this.tsmiArchiveExtract_Click);
             // 
@@ -186,7 +186,7 @@
             // 
             this.tsmiArchiveDelete.Name = "tsmiArchiveDelete";
             this.tsmiArchiveDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.tsmiArchiveDelete.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveDelete.Size = new System.Drawing.Size(186, 22);
             this.tsmiArchiveDelete.Text = "&Delete file";
             this.tsmiArchiveDelete.Click += new System.EventHandler(this.tsmiArchiveDelete_Click);
             // 
@@ -204,6 +204,7 @@
             this.lbFilesList.SelectedIndexChanged += new System.EventHandler(this.lbFilesList_SelectedIndexChanged);
             this.lbFilesList.DragDrop += new System.Windows.Forms.DragEventHandler(this.Lv_DragDrop);
             this.lbFilesList.DragEnter += new System.Windows.Forms.DragEventHandler(this.Lv_DragEnter);
+            this.lbFilesList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lbFilesList_MouseUp);
             // 
             // lblFileNameVal
             // 
