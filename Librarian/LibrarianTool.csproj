@@ -73,6 +73,8 @@
   <ItemGroup>
     <Compile Include="Domain\Archive.cs" />
     <Compile Include="Domain\ArchiveEntry.cs" />
+    <Compile Include="Domain\Archives\ArchiveCatV1.cs" />
+    <Compile Include="Domain\Archives\ArchiveDuneCd.cs" />
     <Compile Include="Domain\Archives\ArchiveLadyGl.cs" />
     <Compile Include="Domain\Archives\ArchiveLibV1.cs" />
     <Compile Include="Domain\Archives\ArchiveLibV2.cs" />
@@ -82,6 +84,9 @@
     <Compile Include="Domain\Archives\ArchiveRenpy.cs" />
     <Compile Include="Domain\Archives\ArchiveM3.cs" />
     <Compile Include="Domain\Archives\ArchiveSndKort.cs" />
+    <Compile Include="Domain\Archives\ArchiveGrx.cs" />
+    <Compile Include="Domain\Archives\ArchiveSwt.cs" />
+    <Compile Include="Domain\Archives\ArchiveCatV2.cs" />
     <Compile Include="Domain\Utils\ExtensionSorter.cs" />
     <Compile Include="Domain\GameData\Dynamix\DynamixChunk.cs" />
     <Compile Include="Domain\GameData\Dynamix\DynamixCompression.cs" />

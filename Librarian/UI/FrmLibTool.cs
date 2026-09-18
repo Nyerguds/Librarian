@@ -176,7 +176,7 @@ namespace LibrarianTool
             {
                 Archive archive;
                 List<FileTypeLoadException> loadErrors;
-                using (FileStream fs = new FileStream(path, FileMode.Open))
+                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                     archive = Archive.LoadArchiveAutodetect(fs, path, specificOpenTypes, specificOpenTypes != null, out loadErrors);
                 if (archive != null)
                     return archive;
@@ -463,7 +463,12 @@ namespace LibrarianTool
             {
                 archiveType.SaveArchive(this.m_LoadedArchive, filename);
             }
-            catch (NotSupportedException e)
+            catch (NotImplementedException)
+            {
+                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Saving is not supported for this format. Sorry!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            catch (ArgumentException e)
             {
                 // No stack trace; just show the message.
                 this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), e.Message, MessageBoxButtons.OK, MessageBoxIcon.Warning);

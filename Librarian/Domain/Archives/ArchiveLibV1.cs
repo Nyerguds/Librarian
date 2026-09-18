@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Collections.Generic;
 using Nyerguds.Util;
 
 namespace LibrarianTool.Domain.Archives
@@ -15,10 +16,10 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeDescription { get { return "Mythos LIB v1"; } }
         public override String[] FileExtensions { get { return new String[] { "LIB" }; } }
         
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             Int32 files = this.GetFilesCount(loadStream, IdBytesLib);
-            this.LoadLibArchive(loadStream, files, archivePath);
+            return this.LoadLibArchive(loadStream, files, archivePath);
         }
 
         protected Int32 GetFilesCount(Stream loadStream, Byte[] idBytes)
@@ -36,7 +37,7 @@ namespace LibrarianTool.Domain.Archives
             return files;
         }
 
-        protected void LoadLibArchive(Stream loadStream, Int32 files, String archivePath)
+        protected List<ArchiveEntry> LoadLibArchive(Stream loadStream, Int32 files, String archivePath)
         {
             Int64 end = loadStream.Length;
             Int32 fileEntries = files + 1;
@@ -45,8 +46,7 @@ namespace LibrarianTool.Domain.Archives
             Byte[] buffer = new Byte[fileEntryLength];
             String previousEntryName = null;
             Int32 previousEntryStart = 0;
-            this._filesList.Clear();
-
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
             //Console.Write("Reading archive entries...");
             for (Int32 i = 0; i < fileEntries; i++)
             {
@@ -62,7 +62,7 @@ namespace LibrarianTool.Domain.Archives
                 {
                     Int32 entryLength = curEntryStart - previousEntryStart;
                     ArchiveEntry archiveEntry = new ArchiveEntry(previousEntryName, archivePath, previousEntryStart, entryLength);
-                    this._filesList.Add(archiveEntry);
+                    filesList.Add(archiveEntry);
                 }
                 else if (i != 0)
                     throw new FileTypeLoadException("Empty archive entry! Aborting");
@@ -71,7 +71,8 @@ namespace LibrarianTool.Domain.Archives
                 previousEntryName = curName;
                 previousEntryStart = curEntryStart;
             }
-            this._filesList = this._filesList.OrderBy(x => x.FileName).ToList();
+            filesList = this._filesList.OrderBy(x => x.FileName).ToList();
+            return filesList;
         }
 
         public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)

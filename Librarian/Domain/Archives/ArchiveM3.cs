@@ -19,9 +19,8 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeDescription { get { return "Interactive Girls Archive"; } }
         public override String[] FileExtensions { get { return new String[] { "m3", "slb" }; } }
 
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
-            this._filesList.Clear();
             loadStream.Position = 0;
             Int64 streamLength = loadStream.Length;
             Byte[] addressBuffer = new Byte[4];
@@ -32,6 +31,7 @@ namespace LibrarianTool.Domain.Archives
             Int32 readOffs = 4;
             Int32 minOffs = Int32.MaxValue;
             Int32 indexOffs = 0;
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
             do
             {
                 Int32 prevIndexOffs = indexOffs;
@@ -68,14 +68,15 @@ namespace LibrarianTool.Domain.Archives
                         isScript = !isImage && script == 0x7E7C;
                         loadStream.Position = readOffs;
                     }
-                    String filename = this._filesList.Count.ToString("00000000") + "." + (isImage ? "gx2" : (isScript? "txt" : "dat"));
-                    this._filesList.Add(new ArchiveEntry(filename, archivePath, prevIndexOffs, indexOffs - prevIndexOffs));
+                    String filename = filesList.Count.ToString("00000000") + "." + (isImage ? "gx2" : (isScript? "txt" : "dat"));
+                    filesList.Add(new ArchiveEntry(filename, archivePath, prevIndexOffs, indexOffs - prevIndexOffs));
                 }
                 readOffs += 4;
                 loadStream.Position = readOffs;
             } while (readOffs < minOffs && indexOffs < streamLength);
             if (readOffs != minOffs || indexOffs != streamLength)
                 throw new FileTypeLoadException("Not an IGC archive!");
+            return filesList;
         }
 
         public override String GetInternalFilename(String filePath)

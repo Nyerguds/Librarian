@@ -19,7 +19,7 @@ namespace LibrarianTool.Domain.Archives
         protected const String BufferInfoFormat = BufferInfo + "{0:X8}";
         protected readonly Regex BufferRegex = new Regex("(" + Regex.Escape(BufferInfo) + "([a-fA-F0-9]{8}))", RegexOptions.Compiled);
         
-		protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+		protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
 		{
 			loadStream.Position = 0;
 			this._filesList.Clear();
@@ -31,6 +31,7 @@ namespace LibrarianTool.Domain.Archives
 		        throw new FileTypeLoadException("Too short to be a " + this.ShortTypeDescription + " archive.");
 		    Byte[] buffer = new Byte[25];
 			Int64 firstPos = 2 + nrOfFiles * 25;
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
 			while (loadStream.Position < firstPos)
 			{
 				amount = loadStream.Read(buffer, 0, 25);
@@ -51,9 +52,10 @@ namespace LibrarianTool.Domain.Archives
                 sbExtraInfo.Append(String.Format(BufferInfoFormat, buff));
 				this.IdentifyType(loadStream, offset, size, sbExtraInfo);
 				archiveEntry.ExtraInfo = sbExtraInfo.ToString();
-				this._filesList.Add(archiveEntry);
+				filesList.Add(archiveEntry);
 			}
 			this.ExtraInfo = "WARNING - The unknown 'Buffer' value will only be preserved when REPLACING files.";
+		    return filesList;
 		}
 
 		protected void IdentifyType(Stream loadStream, UInt32 offset, UInt32 size, StringBuilder sbExtraInfo)
@@ -84,12 +86,13 @@ namespace LibrarianTool.Domain.Archives
 			loadStream.Position = savedPos;
 		}
 
-		protected override void InsertFileInternal(String filePath, String internalFilename, Int32 foundIndex)
+        protected override ArchiveEntry InsertFileInternal(String filePath, String internalFilename, Int32 foundIndex)
 		{
+            ArchiveEntry entry;
 		    if (foundIndex == -1)
 		    {
-                this._filesList.Add(new ArchiveEntry(filePath, internalFilename, String.Format(BufferInfoFormat, 0)));
-		        return;
+                this._filesList.Add(entry = new ArchiveEntry(filePath, internalFilename, String.Format(BufferInfoFormat, 0)));
+                return entry;
 		    }
             String extraInfo = this._filesList[foundIndex].ExtraInfo ?? String.Format(BufferInfoFormat, 0);
 		    Match match = this.BufferRegex.Match(extraInfo);
@@ -99,7 +102,7 @@ namespace LibrarianTool.Domain.Archives
 		        try
 		        {
 		            StringBuilder sb = new StringBuilder(bufferInfo);
-		            using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                    using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
 		            {
 		                this.IdentifyType(fs, 0u, (UInt32) fs.Length, sb);
 		                extraInfo = sb.ToString();
@@ -110,7 +113,8 @@ namespace LibrarianTool.Domain.Archives
 		            // Ignore
 		        }
 		    }
-		    this._filesList[foundIndex] = new ArchiveEntry(filePath, internalFilename, extraInfo);
+		    this._filesList[foundIndex] = (entry = new ArchiveEntry(filePath, internalFilename, extraInfo));
+            return entry;
 		}
 
 	    protected override void OrderFilesListInternal(List<ArchiveEntry> filesList)

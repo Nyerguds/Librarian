@@ -29,8 +29,12 @@ namespace LibrarianTool.Domain
         public void LoadArchive(String loadPath)
         {
             this.FileName = loadPath;
-            using (FileStream fs = new FileStream(loadPath, FileMode.Open))
-                this.LoadArchiveInternal(fs, loadPath);
+            List<ArchiveEntry> filesList;
+            using (FileStream fs = new FileStream(loadPath, FileMode.Open, FileAccess.Read))
+                filesList = this.LoadArchiveInternal(fs, loadPath);
+            if (filesList == null)
+                filesList = new List<ArchiveEntry>();
+            this._filesList = filesList;
         }
 
         /// <summary>Reads the stream, and fills in the _filesList list;</summary>
@@ -40,7 +44,10 @@ namespace LibrarianTool.Domain
         public void LoadArchive(Stream loadStream, String archivePath)
         {
             this.FileName = archivePath;
-            this.LoadArchiveInternal(loadStream, archivePath);
+            List<ArchiveEntry> filesList = this.LoadArchiveInternal(loadStream, archivePath);
+            if (filesList == null)
+                filesList = new List<ArchiveEntry>();
+            this._filesList = filesList;
         }
 
         /// <summary>Reads the bytes, and fills in the _filesList list;</summary>
@@ -50,15 +57,19 @@ namespace LibrarianTool.Domain
         public void LoadArchive(Byte[] loadData, String archivePath)
         {
             this.FileName = archivePath;
+            List<ArchiveEntry> filesList;
             using (MemoryStream ms = new MemoryStream(loadData))
-                this.LoadArchiveInternal(ms, archivePath);
+                filesList = this.LoadArchiveInternal(ms, archivePath);
+            if (filesList == null)
+                filesList = new List<ArchiveEntry>();
+            this._filesList = filesList;
         }
 
         /// <summary>Reads the stream, and fills in the _filesList list;</summary>
         /// <param name="loadStream">Stream to load the file from.</param>
         /// <param name="archivePath">Path of the loaded archive.</param>
         /// <returns>True if loading succeeded.</returns>
-        protected abstract void LoadArchiveInternal(Stream loadStream, String archivePath);
+        protected abstract List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath);
 
         /// <summary>Saves the given archive as this specific type</summary>
         /// <param name="archive">Archive to save as this type.</param>
@@ -85,8 +96,16 @@ namespace LibrarianTool.Domain
         {
             if (entry == null)
                 return false;
+            String folder = Path.GetDirectoryName(savePath);
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
             using (FileStream fs = new FileStream(savePath, FileMode.Create))
                 CopyEntryContentsToStream(entry, fs);
+            if (entry.Date.HasValue)
+            {
+                //File.SetCreationTime(savePath, entry.Date.Value);
+                File.SetLastWriteTime(savePath, entry.Date.Value);
+            }
             return true;
         }
 
@@ -114,34 +133,39 @@ namespace LibrarianTool.Domain
         
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
-		public virtual void InsertFile(String filePath)
+		public virtual ArchiveEntry InsertFile(String filePath)
 		{
 			String internalFilename = this.GetInternalFilename(Path.GetFileName(filePath));
 			Int32 foundIndex;
 			this.FindFile(filePath, out foundIndex);
-			this.InsertFileInternal(filePath, internalFilename, foundIndex);
+			ArchiveEntry retEntry = this.InsertFileInternal(filePath, internalFilename, foundIndex);
+            retEntry.Date = File.GetLastWriteTime(filePath);
 			this.OrderFilesListInternal(this._filesList);
+            return retEntry;
 		}
 
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
         /// <param name="internalFilename">Filename as it is stored in the archive.</param>
-		public virtual void InsertFile(String filePath, String internalFilename)
+        public virtual ArchiveEntry InsertFile(String filePath, String internalFilename)
 		{
 
 			internalFilename = this.GetInternalFilename(internalFilename);
 			Int32 foundIndex;
 			this.FindFile(internalFilename, out foundIndex);
-			this.InsertFileInternal(filePath, internalFilename, foundIndex);
+            ArchiveEntry retEntry = this.InsertFileInternal(filePath, internalFilename, foundIndex);
 			this.OrderFilesListInternal(this._filesList);
+            return retEntry;
 		}
 
-		protected virtual void InsertFileInternal(String filePath, String internalFilename, Int32 foundIndex)
+        protected virtual ArchiveEntry InsertFileInternal(String filePath, String internalFilename, Int32 foundIndex)
 		{
+            ArchiveEntry entry;
 		    if (foundIndex == -1)
-		        this._filesList.Add(new ArchiveEntry(filePath, internalFilename));
+		        this._filesList.Add(entry = new ArchiveEntry(filePath, internalFilename));
 		    else
-		        this._filesList[foundIndex] = new ArchiveEntry(filePath, internalFilename, this._filesList[foundIndex].ExtraInfo);
+		        this._filesList[foundIndex] = (entry = new ArchiveEntry(filePath, internalFilename, this._filesList[foundIndex].ExtraInfo));
+            return entry;
 		}
 
         protected virtual void OrderFilesListInternal(List<ArchiveEntry> filesList)
@@ -161,12 +185,14 @@ namespace LibrarianTool.Domain
         public virtual String GetInternalFilename(String filePath)
         {
             String filename = Path.GetFileNameWithoutExtension(filePath) ?? String.Empty;
+            filename = new String(filename.Replace(' ', '_').Where(x => x > 0x20 && x < 0x7F).ToArray());
             String extension = Path.GetExtension(filePath) ?? String.Empty;
+            extension = new String(extension.Replace(' ', '_').Where(x => x > 0x20 && x < 0x7F).ToArray());
             if (filename.Length > 8)
                 filename = filename.Substring(0, 8);
             if (extension.Length > 4)
                 extension = extension.Substring(0, 4);
-            return new String((filename + extension).ToUpperInvariant().Replace(' ','_').Where(x => x > 0x20 && x < 0x7F).ToArray());
+            return (filename + extension).ToUpperInvariant();
         }
 
         public virtual void RemoveFiles(String[] filenames)
@@ -236,7 +262,7 @@ namespace LibrarianTool.Domain
                 start = entry.StartOffset;
                 length = entry.Length;
             }
-            using (FileStream fs = new FileStream(readFile, FileMode.Open))
+            using (FileStream fs = new FileStream(readFile, FileMode.Open, FileAccess.Read))
             {
                 fs.Seek(start, SeekOrigin.Begin);
                 CopyStream(fs, saveStream, length);
@@ -371,11 +397,16 @@ namespace LibrarianTool.Domain
             typeof(ArchiveLibV1),
             typeof(ArchiveLibV2),
             typeof(ArchiveM3),
+            typeof(ArchiveDuneCd),
             typeof(ArchivePakV1),
             typeof(ArchivePakV2),
             typeof(ArchivePakV3),
             typeof(ArchiveRenpy),
 			typeof(ArchiveSndKort),
+            typeof(ArchiveSwt),
+            typeof(ArchiveGrx),
+            typeof(ArchiveCatV1),
+            typeof(ArchiveCatV2),
         };
 
         /// <summary>
@@ -390,12 +421,17 @@ namespace LibrarianTool.Domain
             typeof(ArchiveLibV1),
             typeof(ArchiveLibV2),
             typeof(ArchiveM3),
+            typeof(ArchiveDuneCd),
             typeof(ArchivePakV3),
             typeof(ArchivePakV2),
             typeof(ArchivePakV1),
             typeof(ArchiveDynV1),
             typeof(ArchiveDynV2),
+            typeof(ArchiveCatV1),
+            typeof(ArchiveCatV2),
 			typeof(ArchiveSndKort),
+            typeof(ArchiveSwt),
+            typeof(ArchiveGrx),
         };
 
     }

@@ -13,6 +13,8 @@ namespace LibrarianTool.Domain
         public Int32 StartOffset { get; set; }
         public Int32 Length { get; set; }
         public String ExtraInfo { get; set; }
+        public Byte[] ExtraInfoBin { get; set; }
+        public DateTime? Date { get; set; }
 
         public ArchiveEntry ()
         {
@@ -44,6 +46,7 @@ namespace LibrarianTool.Domain
             this.Length = -1;
             this.ExtraInfo = extraInfo;
         }
+
         /// <summary>
         /// For loading from an archive.
         /// </summary>
@@ -57,6 +60,22 @@ namespace LibrarianTool.Domain
             this.ArchivePath = archivePath;
             this.StartOffset = startOffset;
             this.Length = length;
+        }
+
+        /// <summary>
+        /// For loading from an archive.
+        /// </summary>
+        /// <param name="fileName">filename in the archive</param>
+        /// <param name="archivePath">Path of the archive</param>
+        /// <param name="startOffset">Start offset</param>
+        /// <param name="length">Length</param>
+        public ArchiveEntry(String fileName, String archivePath, Int32 startOffset, Int32 length, String extraInfo)
+        {
+            this.FileName = fileName;
+            this.ArchivePath = archivePath;
+            this.StartOffset = startOffset;
+            this.Length = length;
+            this.ExtraInfo = extraInfo;
         }
 
         /// <summary>

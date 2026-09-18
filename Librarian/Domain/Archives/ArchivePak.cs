@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Collections.Generic;
 using Nyerguds.Util;
 
 namespace LibrarianTool.Domain.Archives
@@ -28,7 +29,7 @@ namespace LibrarianTool.Domain.Archives
         public override String[] FileExtensions { get { return new String[] { "PAK" }; } }
         protected abstract PakVersion PakVer { get; }
 
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             UInt32 end = (UInt32)loadStream.Length;
             Encoding enc = new ASCIIEncoding();
@@ -36,7 +37,6 @@ namespace LibrarianTool.Domain.Archives
                 throw new FileTypeLoadException("Archive not long enough for a single entry.");
             Byte[] addressBuffer = new Byte[4];
             loadStream.Position = 0;
-            this._filesList.Clear();
             this.ExtraInfo = String.Empty;
             ArchiveEntry curEntry = null;
             UInt32 minOffs = end;
@@ -46,6 +46,7 @@ namespace LibrarianTool.Domain.Archives
             Boolean foundNullAddress = false;
             Boolean foundNullName = false;
             UInt32 address = 0;
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
             while (loadStream.Position < minOffs)
             {
                 if (loadStream.Read(addressBuffer, 0, 4) < 4)
@@ -107,7 +108,7 @@ namespace LibrarianTool.Domain.Archives
                 {
                     curEntry = new ArchiveEntry(curName, archivePath, (Int32) address, -1);
                     minOffs = Math.Min(minOffs, address);
-                    this._filesList.Add(curEntry);
+                    filesList.Add(curEntry);
                 }
             }
 
@@ -127,8 +128,9 @@ namespace LibrarianTool.Domain.Archives
             if (curEntry != null && curEntry.Length == -1)
                 throw new FileTypeLoadException("This is not a PAK file.");
             // Not gonna allow this. Too much chance on empty edge cases.
-            if (this._filesList.Count == 0)
+            if (filesList.Count == 0)
                 throw new FileTypeLoadException("Not entries in PAK file.");
+            return filesList;
         }
 
         public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)

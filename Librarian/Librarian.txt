@@ -16,7 +16,11 @@ archives was added later. Currently supported archives:
 -Ren'Py archives (read-only)
 -Interactive Girls Club M3/SLB archives
 -KORT.SND archive from King Arthur's K.O.R.T.
-
+-Cryo's Dune CD DAT Archives (read-only)
+-SelectWare Technologies Archive (read-only)
+-Genus Microprogramming Archive (read-only)
+-MPS Labs Catalog v1
+-MPS Labs Catalog v2
 
 If you like what I'm doing, and you have too much money, feel free to donate:
 https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=nyerguds@gmail.com&currency_code=EUR
@@ -24,6 +28,14 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=nyerguds@gmail.com
 
 Version history:
 ---------------
+
+v1.0.4: (05/05/2021 10:10)
+-Added read support for the archives on the CD version of Cryo's "Dune".
+-Added read support for SelectWare Technologies archives.
+-Added read support for Genus Microprogramming archives.
+-Improved error handling on saving
+-Added "last modified date" to the list of file information that can be stored.
+-Added support for MPS Labs Catalog v1 and v2 archives.
 
 v1.0.3: (26/01/2020 17:50)
 -Fixed error that prevented loading Mythos LIB format.

@@ -18,7 +18,7 @@ namespace LibrarianTool.Domain.Archives
 
         public override String[] FileExtensions { get { return new String[] {"glt"}; } }
 
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             if (archivePath == null)
                 throw new FileTypeLoadException("Need path to identify this type.");
@@ -55,7 +55,7 @@ namespace LibrarianTool.Domain.Archives
             }
             if (!File.Exists(secondStreamName))
                 throw new FileTypeLoadException("Cannot find accompanying file.");
-            this._filesList.Clear();
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
             using (FileStream secondStream = File.OpenRead(secondStreamName))
             {
                 Stream tableData = secondStreamIsContent ? loadStream : secondStream;
@@ -100,18 +100,19 @@ namespace LibrarianTool.Domain.Archives
                     contentOverlapCheck.Add(new Int32[] {fileOffset, fileEnd});
                     if (dataLength < fileEnd)
                         throw new FileTypeLoadException("Internal file does not fit in archive.");
-                    this._filesList.Add(new ArchiveEntry(fileName, archiveDataName, fileOffset, fileLength));
+                    filesList.Add(new ArchiveEntry(fileName, archiveDataName, fileOffset, fileLength));
                     frameNr++;
                 }
             }
+            return filesList;
         }
 
         public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
             if (savePath == null)
-                throw new NotSupportedException("This type needs a filename since it writes its data to an accompanying file.");
+                throw new ArgumentException("This type needs a filename since it writes its data to an accompanying file.");
             if ( ".GL".Equals(Path.GetExtension(savePath)))
-                throw new NotSupportedException("Suggested name cannot have extension \".gl\"; it is reserved for the data file.");
+                throw new ArgumentException("Suggested name cannot have extension \".gl\"; it is reserved for the data file.");
             ArchiveEntry[] entries = archive.FilesList.ToArray();
             Int32 nrOfEntries = entries.Length;
             String dataPath = Path.Combine(Path.GetDirectoryName(savePath), Path.GetFileNameWithoutExtension(savePath) + ".gl");
@@ -123,7 +124,7 @@ namespace LibrarianTool.Domain.Archives
                 {
                     ArchiveEntry entry = entries[i];
                     if (entry.FileName.Any(c => c <= 0x20 || c > 0x7F))
-                        throw new NotSupportedException("Filenames must be pure ASCII.");
+                        throw new ArgumentException("Filenames must be pure ASCII.");
                     String fileName = entry.FileName;
                     String[] nameSplit = fileName.Split('.');
                     Int32 actualNameLen = fileName.Length;

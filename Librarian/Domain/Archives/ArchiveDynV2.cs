@@ -18,7 +18,7 @@ namespace LibrarianTool.Domain.Archives
         public override String[] FileExtensions { get { return new String[] { "000", "001", "002", "003", "004", "005", "006", "007", "008", "009" }; } }
         public override Boolean CanSave { get { return false; } }
 
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             Encoding enc = Encoding.GetEncoding(437);
             Int32 curPos = (Int32)loadStream.Position;
@@ -27,6 +27,7 @@ namespace LibrarianTool.Domain.Archives
             Int32 currentChunkStart = 0;
             Int32 currentChunkEnd = 0;
             Int32 currentChunkLength = 0;
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
             while (curPos < end)
             {
                 switch (readMode)
@@ -59,13 +60,14 @@ namespace LibrarianTool.Domain.Archives
                         currentChunk = DynamixCompression.DecodeChunk(currentChunk);
                         String curName = enc.GetString(currentChunk.TakeWhile(x => x != 0).ToArray());
                         ArchiveEntry fe = new ArchiveEntry(curName, archivePath, currentChunkStart, currentChunkLength);
-                        this._filesList.Add(fe);
+                        filesList.Add(fe);
                         readMode = ReadMode.ReadChunk;
                         loadStream.Position = currentChunkEnd;
                         break;
                 }
                 curPos = (Int32)loadStream.Position;
             }
+            return filesList;
         }
 
         public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)

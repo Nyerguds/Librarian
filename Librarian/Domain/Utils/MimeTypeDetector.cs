@@ -62,7 +62,7 @@ namespace Nyerguds.Util
         public static String[] GetMimeType(String inputPath)
         {
             Byte[] file = new Byte[BYTESTOREAD];
-            using (FileStream fs = new FileStream(inputPath, FileMode.Open))
+            using (FileStream fs = new FileStream(inputPath, FileMode.Open, FileAccess.Read))
             {
                 fs.Position = 0;
                 Int32 actualRead = 0;

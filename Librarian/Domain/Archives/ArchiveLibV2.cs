@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 using Nyerguds.Util;
 
 namespace LibrarianTool.Domain.Archives
@@ -12,7 +13,7 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeName { get { return "Mythos LIB Archive v2"; } }
         public override String ShortTypeDescription { get { return "Mythos LIB v2"; } }
 
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             Int32 files = this.GetFilesCount(loadStream, IdBytesLic);
             Int32 skip = 8 * (files + 1);
@@ -20,7 +21,7 @@ namespace LibrarianTool.Domain.Archives
                 throw new FileTypeLoadException("File too short for full header.");
             // Load of junk. No idea what it is.
             loadStream.Position += skip;
-            this.LoadLibArchive(loadStream, files, archivePath);
+            return this.LoadLibArchive(loadStream, files, archivePath);
         }
 
         public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)

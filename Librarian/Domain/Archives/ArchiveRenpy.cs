@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Collections.Generic;
 using Nyerguds.Util;
 
 namespace LibrarianTool.Domain.Archives
@@ -18,7 +19,7 @@ namespace LibrarianTool.Domain.Archives
         public override String[] FileExtensions { get { return new String[] { "rpa" }; } }
         public override Boolean CanSave { get { return false; } }
 
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             loadStream.Position = 0;
             if (loadStream.Length < IdBytesLib.Length)
@@ -34,6 +35,7 @@ namespace LibrarianTool.Domain.Archives
                 throw new FileTypeLoadException("Not a Ren'Py archive.");
             Int64 startIndex = loadStream.Position + sepLen;
             Int32 fileNamecounter = 0;
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
             do
             {
                 loadStream.Position = startIndex; // skip the separator
@@ -46,10 +48,11 @@ namespace LibrarianTool.Domain.Archives
                 Int32 entryLength = (Int32)(endIndex - startIndex);
 
                 ArchiveEntry archiveEntry = new ArchiveEntry(filename + "." + extension, archivePath, (Int32)startIndex, entryLength);
-                this._filesList.Add(archiveEntry);
+                filesList.Add(archiveEntry);
                 startIndex = endIndex + sepLen;
             }
             while (separatorFound);
+            return filesList;
         }
 
         public override String GetInternalFilename(String filePath)
@@ -59,7 +62,7 @@ namespace LibrarianTool.Domain.Archives
         
         public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
         {
-            throw new NotSupportedException("Save is not supported for this format. Sorry!");
+            throw new NotImplementedException();
         }
     }
 }

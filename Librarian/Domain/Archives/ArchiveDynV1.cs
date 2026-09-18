@@ -15,13 +15,13 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeDescription { get { return "Dynamix Archive v1"; } }
         public override String[] FileExtensions { get { return new String[] { "000", "001", "002", "003", "004", "005", "006", "007", "008", "009" }; } }
 
-        protected override void LoadArchiveInternal(Stream loadStream, String archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
         {
             Encoding enc = Encoding.GetEncoding(437);
             Int64 end = loadStream.Length;
             Byte[] buffer = new Byte[FileEntryLength];
-            this._filesList.Clear();
             Int64 curPos = loadStream.Position;
+            List<ArchiveEntry> filesList = new List<ArchiveEntry>();
             while (curPos < end)
             {
                 loadStream.Position = curPos;
@@ -38,8 +38,9 @@ namespace LibrarianTool.Domain.Archives
                     throw new FileTypeLoadException("Archive entry outside file bounds.");
                 if (curName.Length == 0 && curEntryLength == 0)
                     continue;
-                this._filesList.Add(new ArchiveEntry(curName, archivePath, (Int32)loadStream.Position, curEntryLength));
+                filesList.Add(new ArchiveEntry(curName, archivePath, (Int32)loadStream.Position, curEntryLength));
             }
+            return filesList;
         }
 
         public override Boolean SaveArchive(Archive archive, Stream saveStream, String savePath)
