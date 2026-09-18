@@ -17,23 +17,13 @@ namespace LibrarianTool.Domain
         public virtual String FileExtension { get; set; }
         /// <summary>Supported types can always be loaded, but this indicates if save functionality to this type is also available.</summary>
         public virtual Boolean CanSave { get { return true; } }
+        public virtual Boolean SupportsFolders { get { return false; } }
         
         protected List<ArchiveEntry> _filesList = new List<ArchiveEntry>();
         public List<ArchiveEntry> FilesList { get { return this._filesList; } }
         public String FileName { get; protected set; }
         public virtual String ExtraInfo { get; protected set; }
-
-        /// <summary>
-        /// Tool to get date string for ExtraInfo from a dateTime.
-        /// </summary>
-        /// <param name="datestamp">date stamp</param>
-        /// <returns>String for ExtraInfo</returns>
-        protected String GetDateStr(DateTime datestamp)
-        {
-            return "Date: " + datestamp.Year.ToString("D4") + "-" + datestamp.Month.ToString("D2") + "-" + datestamp.Day.ToString("D2") + "\n"
-                    + "Time: " + datestamp.Hour.ToString("D2") + ":" + datestamp.Minute.ToString("D2") + ":" + datestamp.Second.ToString("D2");
-        }
-
+        
         /// <summary>Reads the file, and fills in the _filesList list;</summary>
         /// <param name="loadPath">Path to load the file from.</param>
         /// <returns>True if loading succeeded.</returns>
@@ -108,14 +98,27 @@ namespace LibrarianTool.Domain
             if (entry == null)
                 return false;
             String folder = Path.GetDirectoryName(savePath);
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-            using (FileStream fs = new FileStream(savePath, FileMode.Create))
-                CopyEntryContentsToStream(entry, fs);
+            if (entry.IsFolder)
+            {
+                Directory.CreateDirectory(savePath);
+            }
+            else
+            {
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+                using (FileStream fs = new FileStream(savePath, FileMode.Create))
+                    CopyEntryContentsToStream(entry, fs);
+            }
             if (entry.Date.HasValue)
             {
-                //File.SetCreationTime(savePath, entry.Date.Value);
-                File.SetLastWriteTime(savePath, entry.Date.Value);
+                try
+                {
+                    if (entry.IsFolder)
+                        Directory.SetLastWriteTime(savePath, entry.Date.Value);
+                    else
+                        File.SetLastWriteTime(savePath, entry.Date.Value);
+                }
+                catch (IOException) { /* Ignore. It's just the time stamp. */ }
             }
             return true;
         }
@@ -146,10 +149,12 @@ namespace LibrarianTool.Domain
         /// <param name="filePath">Path of the file to load.</param>
 		public virtual ArchiveEntry InsertFile(String filePath)
 		{
+            Boolean isFolder = (File.GetAttributes(filePath) & FileAttributes.Directory) != 0;
 			String internalFilename = this.GetInternalFilename(Path.GetFileName(filePath));
 			Int32 foundIndex;
-			this.FindFile(filePath, out foundIndex);
+            this.FindFile(internalFilename, out foundIndex);
 			ArchiveEntry retEntry = this.InsertFileInternal(filePath, internalFilename, foundIndex);
+            retEntry.IsFolder = isFolder;
             retEntry.Date = File.GetLastWriteTime(filePath);
 			this.OrderFilesListInternal(this._filesList);
             return retEntry;
@@ -159,12 +164,13 @@ namespace LibrarianTool.Domain
         /// <param name="filePath">Path of the file to load.</param>
         /// <param name="internalFilename">Filename as it is stored in the archive.</param>
         public virtual ArchiveEntry InsertFile(String filePath, String internalFilename)
-		{
-
+        {
+            Boolean isFolder = (File.GetAttributes(filePath) & FileAttributes.Directory) != 0;
 			internalFilename = this.GetInternalFilename(internalFilename);
 			Int32 foundIndex;
 			this.FindFile(internalFilename, out foundIndex);
             ArchiveEntry retEntry = this.InsertFileInternal(filePath, internalFilename, foundIndex);
+            retEntry.IsFolder = isFolder;
 			this.OrderFilesListInternal(this._filesList);
             return retEntry;
 		}
@@ -195,15 +201,20 @@ namespace LibrarianTool.Domain
         /// <returns></returns>
         public virtual String GetInternalFilename(String filePath)
         {
-            String filename = Path.GetFileNameWithoutExtension(filePath) ?? String.Empty;
-            filename = new String(filename.Replace(' ', '_').Where(x => x > 0x20 && x < 0x7F).ToArray());
-            String extension = Path.GetExtension(filePath) ?? String.Empty;
-            extension = new String(extension.Replace(' ', '_').Where(x => x > 0x20 && x < 0x7F).ToArray());
-            if (filename.Length > 8)
-                filename = filename.Substring(0, 8);
-            if (extension.Length > 4)
-                extension = extension.Substring(0, 4);
-            return (filename + extension).ToUpperInvariant();
+            String fileDir = Path.GetDirectoryName(filePath) ?? String.Empty;
+            if (fileDir.Length > 0)
+            {
+                String[] fileDirs = fileDir.Split(new Char[] {'\\'}, StringSplitOptions.RemoveEmptyEntries);
+                for (Int32 i = 0; i < fileDirs.Length; i++)
+                {
+                    fileDirs[i] = GeneralUtils.GetDos83FileName(fileDirs[i]);
+                }
+                fileDir = String.Join("\\", fileDirs);
+            }
+            String finalName = GeneralUtils.GetDos83FileName(filePath);
+            if (fileDir.Length > 0)
+                finalName = fileDir + "\\" + finalName;
+            return finalName;
         }
 
         public virtual void RemoveFiles(String[] filenames)
@@ -254,7 +265,7 @@ namespace LibrarianTool.Domain
                 return ms.ToArray();
             }
         }
-        
+
         protected static void CopyEntryContentsToStream(ArchiveEntry entry, Stream saveStream)
         {
             String readFile;

@@ -71,7 +71,7 @@ namespace LibrarianTool.Domain.Archives
                 previousEntryName = curName;
                 previousEntryStart = curEntryStart;
             }
-            filesList = this._filesList.OrderBy(x => x.FileName).ToList();
+            filesList = filesList.OrderBy(x => x.FileName).ToList();
             return filesList;
         }
 

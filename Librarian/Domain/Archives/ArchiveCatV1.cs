@@ -25,7 +25,7 @@ namespace LibrarianTool.Domain.Archives
                 throw new FileTypeLoadException("Not a CAT v1 Archive.");
             loadStream.Read(buffer, 0, 2);
             Int32 fatlength = (Int32)ArrayUtils.ReadIntFromByteArray(buffer, 0, 2, true);
-            if (end - loadStream.Position < fatlength)
+            if (fatlength == 0 || end - loadStream.Position < fatlength)
                 throw new FileTypeLoadException("Not a CAT v1 Archive.");
             if (fatlength % FileEntryLength != 0)
                 throw new FileTypeLoadException("Not a CAT v1 Archive.");

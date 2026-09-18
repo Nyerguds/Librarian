@@ -48,7 +48,7 @@ namespace LibrarianTool.Domain.Archives
             Encoding enc = Encoding.GetEncoding(437);
             Byte[] buffer = new Byte[FileEntryLength];
 
-            foreach (ArchiveEntry entry in this._filesList)
+            foreach (ArchiveEntry entry in archive.FilesList)
             {
                 String filename = this.GetInternalFilename(entry.FileName);
                 enc.GetBytes(this.FileName, 0, 12, buffer, 0);

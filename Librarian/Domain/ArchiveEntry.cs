@@ -14,6 +14,7 @@ namespace LibrarianTool.Domain
         public Int32 Length { get; set; }
         public String ExtraInfo { get; set; }
         public Byte[] ExtraInfoBin { get; set; }
+        public Boolean IsFolder { get; set; }
         public DateTime? Date { get; set; }
 
         public ArchiveEntry ()

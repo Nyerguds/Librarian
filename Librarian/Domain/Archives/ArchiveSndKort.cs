@@ -15,14 +15,11 @@ namespace LibrarianTool.Domain.Archives
         public override String ShortTypeDescription { get { return "KORT SND"; } }
         public override String[] FileExtensions { get { return new String[] { "SND" }; } }
         
-		protected const String BufferInfo = "Buffer: 0x";
-        protected const String BufferInfoFormat = BufferInfo + "{0:X8}";
-        protected readonly Regex BufferRegex = new Regex("(" + Regex.Escape(BufferInfo) + "([a-fA-F0-9]{8}))", RegexOptions.Compiled);
+        protected const String BufferInfoFormat = "Buffer info: 0x{0:X8}";
         
 		protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, String archivePath)
 		{
 			loadStream.Position = 0;
-			this._filesList.Clear();
 			this.ExtraInfo = String.Empty;
 			Byte[] filesCount = new Byte[2];
 			Int32 amount = loadStream.Read(filesCount, 0, 2);
@@ -39,6 +36,8 @@ namespace LibrarianTool.Domain.Archives
 			        throw new FileTypeLoadException("Header too small! Not a " + this.ShortTypeDescription + " archive.");
 			    UInt32 size = (UInt32)ArrayUtils.ReadIntFromByteArray(buffer, 0, 4, true);
 				UInt32 buff = (UInt32)ArrayUtils.ReadIntFromByteArray(buffer, 4, 4, true);
+                Byte[] buffBytes = new Byte[4];
+                Array.Copy(buffer, 4, buffBytes, 0, 4);
 				UInt32 offset = (UInt32)ArrayUtils.ReadIntFromByteArray(buffer, 8, 4, true);
 			    if (offset + size > loadStream.Length)
 			        throw new FileTypeLoadException("Header refers to data outside the file! Not a " + this.ShortTypeDescription + " archive.");
@@ -52,6 +51,7 @@ namespace LibrarianTool.Domain.Archives
                 sbExtraInfo.Append(String.Format(BufferInfoFormat, buff));
 				this.IdentifyType(loadStream, offset, size, sbExtraInfo);
 				archiveEntry.ExtraInfo = sbExtraInfo.ToString();
+                archiveEntry.ExtraInfoBin = buffBytes;
 				filesList.Add(archiveEntry);
 			}
 			this.ExtraInfo = "WARNING - The unknown 'Buffer' value will only be preserved when REPLACING files.";
@@ -89,31 +89,33 @@ namespace LibrarianTool.Domain.Archives
         protected override ArchiveEntry InsertFileInternal(String filePath, String internalFilename, Int32 foundIndex)
 		{
             ArchiveEntry entry;
-		    if (foundIndex == -1)
+            Byte[] extraInfoBin;
+            StringBuilder sb = new StringBuilder();
+            if (foundIndex == -1)
+            {
+                entry = new ArchiveEntry(filePath, internalFilename);
+                extraInfoBin = new Byte[4];
+            }
+            else
+            {
+                entry = new ArchiveEntry(filePath, internalFilename);
+                extraInfoBin = this._filesList[foundIndex].ExtraInfoBin;
+            }
+            if (extraInfoBin != null && extraInfoBin.Length >= 4)
+            {
+                UInt32 buff = (UInt32) ArrayUtils.ReadIntFromByteArray(extraInfoBin, 0, 4, true);
+                sb.Append(String.Format(BufferInfoFormat, buff));
+            }
+            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
 		    {
-                this._filesList.Add(entry = new ArchiveEntry(filePath, internalFilename, String.Format(BufferInfoFormat, 0)));
-                return entry;
-		    }
-            String extraInfo = this._filesList[foundIndex].ExtraInfo ?? String.Format(BufferInfoFormat, 0);
-		    Match match = this.BufferRegex.Match(extraInfo);
-		    if (match.Success)
-		    {
-		        String bufferInfo = match.Groups[1].Value;
-		        try
-		        {
-		            StringBuilder sb = new StringBuilder(bufferInfo);
-                    using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-		            {
-		                this.IdentifyType(fs, 0u, (UInt32) fs.Length, sb);
-		                extraInfo = sb.ToString();
-		            }
-		        }
-		        catch
-		        {
-		            // Ignore
-		        }
-		    }
-		    this._filesList[foundIndex] = (entry = new ArchiveEntry(filePath, internalFilename, extraInfo));
+		        this.IdentifyType(fs, 0u, (UInt32) fs.Length, sb);
+            }
+            entry.ExtraInfo = sb.ToString();
+            entry.ExtraInfoBin = extraInfoBin;
+            if (foundIndex == -1)
+                this._filesList.Add(entry);
+            else
+		        this._filesList[foundIndex] = entry;
             return entry;
 		}
 
@@ -150,12 +152,9 @@ namespace LibrarianTool.Domain.Archives
 					}
 					bw.Write(fileLength);
 					UInt32 buff = 0u;
-					if (entry.ExtraInfo != null)
-					{
-						Match match = this.BufferRegex.Match(entry.ExtraInfo);
-						if (match.Success)
-							buff = UInt32.Parse(match.Groups[2].Value, NumberStyles.HexNumber);
-					}
+				    Byte[] extraInfoBin = entry.ExtraInfoBin;
+                    if (extraInfoBin != null && extraInfoBin.Length >= 4)
+                        buff = (UInt32)ArrayUtils.ReadIntFromByteArray(extraInfoBin, 0, 4, true);
 					bw.Write(buff);
 					bw.Write(fileOffset);
 					fileOffset += fileLength;

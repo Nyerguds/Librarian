@@ -61,8 +61,12 @@
             this.lblExtraInfo = new System.Windows.Forms.Label();
             this.lblArchiveName = new System.Windows.Forms.Label();
             this.lblArchiveNameVal = new System.Windows.Forms.Label();
-            this.lblEntryExtraInfoVal = new System.Windows.Forms.Label();
             this.lblEntryExtraInfo = new System.Windows.Forms.Label();
+            this.lblEntryExtraInfoVal = new System.Windows.Forms.Label();
+            this.lblIsDirectory = new System.Windows.Forms.Label();
+            this.lblDateStamp = new System.Windows.Forms.Label();
+            this.lblDateStampVal = new System.Windows.Forms.Label();
+            this.lblIsDirectoryVal = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -162,7 +166,7 @@
             // 
             this.tsmiArchiveInsert.Name = "tsmiArchiveInsert";
             this.tsmiArchiveInsert.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
-            this.tsmiArchiveInsert.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveInsert.Size = new System.Drawing.Size(185, 22);
             this.tsmiArchiveInsert.Text = "&Insert file...";
             this.tsmiArchiveInsert.Click += new System.EventHandler(this.tsmiArchiveInsert_Click);
             // 
@@ -170,7 +174,7 @@
             // 
             this.tsmiArchiveInsertAs.Name = "tsmiArchiveInsertAs";
             this.tsmiArchiveInsertAs.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
-            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(185, 22);
             this.tsmiArchiveInsertAs.Text = "Insert file as...";
             this.tsmiArchiveInsertAs.Click += new System.EventHandler(this.tsmiArchiveInsertAs_Click);
             // 
@@ -178,7 +182,7 @@
             // 
             this.tsmiArchiveExtract.Name = "tsmiArchiveExtract";
             this.tsmiArchiveExtract.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.tsmiArchiveExtract.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveExtract.Size = new System.Drawing.Size(185, 22);
             this.tsmiArchiveExtract.Text = "&Extract file...";
             this.tsmiArchiveExtract.Click += new System.EventHandler(this.tsmiArchiveExtract_Click);
             // 
@@ -186,7 +190,7 @@
             // 
             this.tsmiArchiveDelete.Name = "tsmiArchiveDelete";
             this.tsmiArchiveDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.tsmiArchiveDelete.Size = new System.Drawing.Size(186, 22);
+            this.tsmiArchiveDelete.Size = new System.Drawing.Size(185, 22);
             this.tsmiArchiveDelete.Text = "&Delete file";
             this.tsmiArchiveDelete.Click += new System.EventHandler(this.tsmiArchiveDelete_Click);
             // 
@@ -369,24 +373,60 @@
             this.lblArchiveNameVal.TabIndex = 5;
             this.lblArchiveNameVal.Text = "-";
             // 
+            // lblEntryExtraInfo
+            // 
+            this.lblEntryExtraInfo.AutoSize = true;
+            this.lblEntryExtraInfo.Location = new System.Drawing.Point(260, 260);
+            this.lblEntryExtraInfo.Name = "lblEntryExtraInfo";
+            this.lblEntryExtraInfo.Size = new System.Drawing.Size(54, 13);
+            this.lblEntryExtraInfo.TabIndex = 12;
+            this.lblEntryExtraInfo.Text = "Extra info:";
+            // 
             // lblEntryExtraInfoVal
             // 
             this.lblEntryExtraInfoVal.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblEntryExtraInfoVal.Location = new System.Drawing.Point(339, 228);
+            this.lblEntryExtraInfoVal.Location = new System.Drawing.Point(339, 260);
             this.lblEntryExtraInfoVal.Name = "lblEntryExtraInfoVal";
             this.lblEntryExtraInfoVal.Size = new System.Drawing.Size(333, 63);
             this.lblEntryExtraInfoVal.TabIndex = 11;
             this.lblEntryExtraInfoVal.Text = "-";
             // 
-            // lblEntryExtraInfo
+            // lblIsDirectory
             // 
-            this.lblEntryExtraInfo.AutoSize = true;
-            this.lblEntryExtraInfo.Location = new System.Drawing.Point(260, 228);
-            this.lblEntryExtraInfo.Name = "lblEntryExtraInfo";
-            this.lblEntryExtraInfo.Size = new System.Drawing.Size(54, 13);
-            this.lblEntryExtraInfo.TabIndex = 12;
-            this.lblEntryExtraInfo.Text = "Extra info:";
+            this.lblIsDirectory.AutoSize = true;
+            this.lblIsDirectory.Location = new System.Drawing.Point(260, 245);
+            this.lblIsDirectory.Name = "lblIsDirectory";
+            this.lblIsDirectory.Size = new System.Drawing.Size(61, 13);
+            this.lblIsDirectory.TabIndex = 5;
+            this.lblIsDirectory.Text = "Is directory:";
+            // 
+            // lblDateStamp
+            // 
+            this.lblDateStamp.AutoSize = true;
+            this.lblDateStamp.Location = new System.Drawing.Point(260, 229);
+            this.lblDateStamp.Name = "lblDateStamp";
+            this.lblDateStamp.Size = new System.Drawing.Size(64, 13);
+            this.lblDateStamp.TabIndex = 5;
+            this.lblDateStamp.Text = "Date stamp:";
+            // 
+            // lblDateStampVal
+            // 
+            this.lblDateStampVal.AutoSize = true;
+            this.lblDateStampVal.Location = new System.Drawing.Point(339, 229);
+            this.lblDateStampVal.Name = "lblDateStampVal";
+            this.lblDateStampVal.Size = new System.Drawing.Size(10, 13);
+            this.lblDateStampVal.TabIndex = 5;
+            this.lblDateStampVal.Text = "-";
+            // 
+            // lblIsDirectoryVal
+            // 
+            this.lblIsDirectoryVal.AutoSize = true;
+            this.lblIsDirectoryVal.Location = new System.Drawing.Point(339, 245);
+            this.lblIsDirectoryVal.Name = "lblIsDirectoryVal";
+            this.lblIsDirectoryVal.Size = new System.Drawing.Size(10, 13);
+            this.lblIsDirectoryVal.TabIndex = 5;
+            this.lblIsDirectoryVal.Text = "-";
             // 
             // FrmLibTool
             // 
@@ -400,12 +440,16 @@
             this.Controls.Add(this.lblExtraInfo);
             this.Controls.Add(this.lblFileSizeVal);
             this.Controls.Add(this.lblStartOffsetVal);
+            this.Controls.Add(this.lblIsDirectoryVal);
+            this.Controls.Add(this.lblDateStampVal);
             this.Controls.Add(this.lblArchiveNameVal);
             this.Controls.Add(this.lblLocationVal);
             this.Controls.Add(this.lblSelectedFileVal);
             this.Controls.Add(this.lblFileSize);
             this.Controls.Add(this.lblStartOffset);
+            this.Controls.Add(this.lblIsDirectory);
             this.Controls.Add(this.lblArchiveName);
+            this.Controls.Add(this.lblDateStamp);
             this.Controls.Add(this.lblLocation);
             this.Controls.Add(this.lblSelectedFile);
             this.Controls.Add(this.lblFiles);
@@ -428,7 +472,6 @@
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
@@ -466,8 +509,12 @@
         private System.Windows.Forms.ToolStripMenuItem tsmiArchiveInsertAs;
         private System.Windows.Forms.Label lblArchiveName;
         private System.Windows.Forms.Label lblArchiveNameVal;
-        private System.Windows.Forms.Label lblEntryExtraInfoVal;
         private System.Windows.Forms.Label lblEntryExtraInfo;
+        private System.Windows.Forms.Label lblEntryExtraInfoVal;
+        private System.Windows.Forms.Label lblIsDirectory;
+        private System.Windows.Forms.Label lblDateStamp;
+        private System.Windows.Forms.Label lblDateStampVal;
+        private System.Windows.Forms.Label lblIsDirectoryVal;
     }
 }
 

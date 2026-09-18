@@ -22,12 +22,33 @@ archives was added later. Currently supported archives:
 -MPS Labs Catalog v1
 -MPS Labs Catalog v2
 
+Further information on the tool and its file formats can be found on the Shikadi modding wiki:
+https://moddingwiki.shikadi.net/wiki/Librarian
+
 If you like what I'm doing, and you have too much money, feel free to donate:
 https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=nyerguds@gmail.com&currency_code=EUR
 
 
+Note on subfolders inside archives:
+----------------------------------
+While some archive types support internal subdirectories, the support for this is still quite
+rudimentary. Files in subfolders can be added by dropping an entire folder into the archive,
+or one by one, using the "insert file as" feature.
+
+Note that at this moment, there are no formats with subdirectories that actually support saving.
+
+
 Version history:
 ---------------
+
+v1.1.0: (07/05/2021 17:07)
+-Fixed an issue with Mythos LIB Archives showing an empty files list.
+-Fixed an issue where files could be identified as empty CAT archives.
+-Date stamp and directory status are now visible on the UI.
+-Added support for extracting with directories.
+-Simplified code for transferring the buffer info in KORT sound files.
+-New files inserted in a KORT sound archive no longer skip type detection.
+-Fixed broken file decompression when extracting from Dynamix v2 archives.
 
 v1.0.5: (05/05/2021 11:04)
 -Added better feedback when attempting to save to a read-only medium.

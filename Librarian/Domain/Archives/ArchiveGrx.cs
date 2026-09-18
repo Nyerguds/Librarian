@@ -18,7 +18,7 @@ namespace LibrarianTool.Domain.Archives
         const String GRX_BANNER = "Copyright (c) Genus Microprogramming, Inc. 1988-93";
         const String GRX_BANNER_REGEX = "Copyright \\(c\\) Genus Microprogramming, Inc. \\d\\d\\d\\d-\\d\\d";
 
-        protected override List<ArchiveEntry> LoadArchiveInternal(System.IO.Stream loadStream, string archivePath)
+        protected override List<ArchiveEntry> LoadArchiveInternal(Stream loadStream, string archivePath)
         {
             UInt32 end = (UInt32)loadStream.Length;
             Encoding enc = new ASCIIEncoding();
@@ -52,20 +52,18 @@ namespace LibrarianTool.Domain.Archives
                 curName = m.Groups[1].Value + m.Groups[2].Value;
                 Int32 address = (Int32) ArrayUtils.ReadIntFromByteArray(buffer, 0x0E, 4, true);
                 Int32 length = (Int32) ArrayUtils.ReadIntFromByteArray(buffer, 0x12, 4, true);
-                Int32 dosDate = (Int16)ArrayUtils.ReadIntFromByteArray(buffer, 0x16, 2, true);
-                Int32 day = (dosDate & 0x1F);
-                Int32 month = ((dosDate >> 5) & 0x0F);
-                Int32 year = 1980 + ((dosDate >> 9) & 0x7F);
-                if (day == 0 || month == 0 || month > 12)
-                    throw new FileTypeLoadException("Bad date stamp.");
-                Int32 dosTime = (Int16)ArrayUtils.ReadIntFromByteArray(buffer, 0x18, 2, true);
-                Int32 sec = (dosTime & 0x1F) * 2;
-                Int32 min = ((dosTime >> 5) & 0x3F);
-                Int32 hour = ((dosTime >> 11) & 0x1F);
-                if (sec > 59 || min > 59 || hour > 23)
-                    throw new FileTypeLoadException("Bad time stamp.");
-                DateTime dt = new DateTime(year, month, day, hour, min, sec);
-                String extraInfo = GetDateStr(dt);
+                UInt16 dosDate = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x16, 2, true);
+                UInt16 dosTime = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x18, 2, true);
+                DateTime dt;
+                try
+                {
+                    dt = GeneralUtils.GetDosDateTime(dosTime, dosDate);
+                }
+                catch (ArgumentException argex)
+                {
+                    throw new FileTypeLoadException(argex.Message, argex);
+                }
+                String extraInfo = GeneralUtils.GetDateString(dt);
                 ArchiveEntry curEntry = new ArchiveEntry(curName, archivePath, address, length, extraInfo);
                 curEntry.ExtraInfoBin = buffer;
                 curEntry.Date = dt;
@@ -82,11 +80,11 @@ namespace LibrarianTool.Domain.Archives
         {
             ArchiveEntry file = base.InsertFile(filePath);
             DateTime lastMod = file.Date ?? File.GetLastWriteTime(filePath);
-            file.ExtraInfo = GetDateStr(lastMod);
+            file.ExtraInfo = GeneralUtils.GetDateString(lastMod);
             return file;
         }
 
-        public override bool SaveArchive(Archive archive, System.IO.Stream saveStream, string savePath)
+        public override bool SaveArchive(Archive archive, Stream saveStream, string savePath)
         {
             throw new NotImplementedException();
         }

@@ -156,13 +156,63 @@ namespace LibrarianTool
 
         private void AddFiles(String[] files)
         {
-            if(files.Length == 0)
+            if (files.Length == 0)
                 return;
             if (this.m_LoadedArchive == null)
                 return;
-            foreach (String file in files)
-                this.m_LoadedArchive.InsertFile(file);
+            // Disabled for now; if people add it, it's their responsibility.
+            // Won't save until they remove 'em anyway.
+            //if (!this.m_LoadedArchive.SupportsFolders)
+            //{
+            //    foreach (String file in files)
+            //        this.m_LoadedArchive.InsertFile(file);
+            //}
+            //else
+            {
+                List<String> filesList = new List<String>();
+                List<String> filesListRel = new List<String>();
+                foreach (String file in files)
+                {
+                    if ((File.GetAttributes(file) & FileAttributes.Directory) != 0)
+                    {
+                        String containingFolder = Path.GetDirectoryName(file);
+                        AddFilesRecursive(file, containingFolder, filesList, filesListRel);
+                    }
+                    else
+                    {
+                        filesList.Add(file);
+                        filesListRel.Add(null);
+                    }
+                }
+                for (int i = 0; i < filesList.Count; i++)
+                {
+                    if (filesListRel[i] == null)
+                        this.m_LoadedArchive.InsertFile(filesList[i]);
+                    else
+                        this.m_LoadedArchive.InsertFile(filesList[i], filesListRel[i]);
+                }
+            }
             this.LoadArchive(this.m_LoadedArchive, false);
+        }
+
+        private void AddFilesRecursive(String file, String basePath, List<String> filesList, List<String> filesListRelative)
+        {
+            String fullBasePath = Path.GetFullPath(basePath);
+            String fullFilePath = Path.GetFullPath(file);
+            Int32 basePathLen = fullBasePath.Length + 1;
+            filesList.Add(file);
+            String filePathRel = fullFilePath.Substring(basePathLen);
+            filesListRelative.Add(filePathRel.Contains('\\') ? filePathRel : null);
+            if ((File.GetAttributes(file) & FileAttributes.Directory) == 0)
+                return;
+            String[] files = Directory.GetFiles(file);
+            filesList.AddRange(files);
+            for (Int32 i = 0; i < files.Length; i++)
+                files[i] = files[i].Substring(basePathLen);
+            filesListRelative.AddRange(files);
+            String[] subDirs = Directory.GetDirectories(file);
+            foreach (String subDir in subDirs)
+                AddFilesRecursive(subDir, basePath, filesList, filesListRelative);
         }
 
         private Archive DetectArchive(String path, Boolean showErrors)
@@ -208,7 +258,7 @@ namespace LibrarianTool
             this.lblFilesVal.Text = loaded ? archive.FilesList.Count.ToString() : "-";
             this.lblExtraInfoVal.Text = loaded && archive.ExtraInfo != null ? archive.ExtraInfo : "-";
             this.lbFilesList.Items.Clear();
-            this.tsmiFileSave.Enabled = loaded;
+            this.tsmiFileSave.Enabled = loaded && archive.CanSave;
             this.tsmiFileSaveAs.Enabled = loaded;
             this.tsmiFileReload.Enabled = loaded;
             this.tsmiFileClose.Enabled = loaded;
@@ -257,6 +307,8 @@ namespace LibrarianTool
                 this.lblArchiveNameVal.Text = "-";
                 this.lblStartOffsetVal.Text = "-";
                 this.lblFileSizeVal.Text = "-";
+                this.lblDateStampVal.Text = "-";
+                this.lblIsDirectoryVal.Text = "-";
                 this.lblEntryExtraInfoVal.Text = "-";
                 return;
             }
@@ -269,7 +321,13 @@ namespace LibrarianTool
             Boolean accessible = true;
             if (isInserted)
             {
-                try { lengthStr = new FileInfo(entry.PhysicalPath).Length.ToString(); }
+                try
+                {
+                    if (entry.IsFolder && new DirectoryInfo(entry.PhysicalPath).Exists)
+                        lengthStr = "0";
+                    else
+                        lengthStr = new FileInfo(entry.PhysicalPath).Length.ToString();
+                }
                 catch
                 {
                     lengthStr = "?";
@@ -282,6 +340,8 @@ namespace LibrarianTool
             this.lblArchiveNameVal.Text = Path.GetFileName(entry.ArchivePath);
             this.lblStartOffsetVal.Text = isInserted ? (accessible ? "0" : "?") : entry.StartOffset.ToString();
             this.lblFileSizeVal.Text = lengthStr;
+            this.lblDateStampVal.Text = entry.Date.HasValue ? entry.Date.Value.ToString("yyyy-MM-dd, HH:mm:ss") : "-";
+            this.lblIsDirectoryVal.Text = entry.IsFolder ? "Yes" : "No";
             this.lblEntryExtraInfoVal.Text = entry.ExtraInfo;
             if(!accessible)
                 this.DeleteFileFromArchive(entry.FileName + " appears to be missing! Remove entry from the list?", true);
@@ -385,7 +445,11 @@ namespace LibrarianTool
                 if (entry == null)
                     return;
                 SaveFileDialog sfd = new SaveFileDialog();
-                sfd.FileName = entry.FileName;
+                String filename = entry.FileName;
+                Int32 folderSep = filename.LastIndexOf('\\');
+                if (folderSep != -1)
+                    filename = filename.Substring(folderSep + 1);
+                sfd.FileName = filename;
                 sfd.InitialDirectory = m_LastOpenedFolder;
                 if (sfd.ShowDialog(this) == DialogResult.OK)
                 {
@@ -459,6 +523,22 @@ namespace LibrarianTool
 
         private void SaveArchive(Archive archiveType, String filename)
         {
+            if (!archiveType.CanSave)
+            {
+                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Saving is not supported for this format. Sorry!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!archiveType.SupportsFolders)
+            {
+                foreach (ArchiveEntry entry in this.m_LoadedArchive.FilesList)
+                {
+                    if (entry.IsFolder || entry.FileName.Contains("\\"))
+                    {
+                        this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Cannot save as this archive type; it does not support subfolders.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+            }
             try
             {
                 FileInfo fi = new FileInfo(filename);
@@ -471,11 +551,6 @@ namespace LibrarianTool
             catch (Exception)
             {
                 this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Could not access the file path.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            if (!archiveType.CanSave)
-            {
-                this.Invoke(new InvokeDelegateMessageBox(this.ShowMessageBox), "Saving is not supported for this format. Sorry!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             try

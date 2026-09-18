@@ -93,6 +93,56 @@ namespace Nyerguds.Util
             return Path.GetFullPath(path);
         }
 
+        public static DateTime GetDosDateTime(UInt16 dosTime, UInt16 dosDate)
+        {
+            Int32 sec = (dosTime & 0x1F) * 2;
+            Int32 min = ((dosTime >> 5) & 0x3F);
+            Int32 hour = ((dosTime >> 11) & 0x1F);
+            if (sec > 59 || min > 59 || hour > 23)
+                throw new ArgumentException("Bad time stamp.");
+            Int32 day = (dosDate & 0x1F);
+            Int32 month = ((dosDate >> 5) & 0x0F);
+            Int32 year = 1980 + ((dosDate >> 9) & 0x7F);
+            if (day == 0 || month == 0 || month > 12)
+                throw new ArgumentException("Bad date stamp.");
+            return new DateTime(year, month, day, hour, min, sec);
+        }
+
+        public static UInt16 GetDosDateInt(DateTime datestamp)
+        {
+            Int32 year = Math.Max(Math.Min(0, datestamp.Year - 1980), 127);
+            return (UInt16)((datestamp.Day) | (datestamp.Month << 5) | (year << 9));
+        }
+
+        public static UInt16 GetDosTimeInt(DateTime datestamp)
+        {
+            return (UInt16)((datestamp.Second >> 1) | (datestamp.Minute << 5) | (datestamp.Hour << 11));
+        }
+
+        /// <summary>
+        /// Tool to get date string for ExtraInfo from a dateTime.
+        /// </summary>
+        /// <param name="datestamp">date stamp</param>
+        /// <returns>String for ExtraInfo</returns>
+        public static String GetDateString(DateTime datestamp)
+        {
+            return "Date: " + datestamp.Year.ToString("D4") + "-" + datestamp.Month.ToString("D2") + "-" + datestamp.Day.ToString("D2") + "\n"
+                    + "Time: " + datestamp.Hour.ToString("D2") + ":" + datestamp.Minute.ToString("D2") + ":" + datestamp.Second.ToString("D2");
+        }
+
+        public static String GetDos83FileName(String file)
+        {
+            String filename = Path.GetFileNameWithoutExtension(file) ?? String.Empty;
+            filename = new String(filename.Replace(' ', '_').Where(x => x > 0x20 && x < 0x7F).ToArray());
+            String extension = Path.GetExtension(file) ?? String.Empty;
+            extension = new String(extension.Replace(' ', '_').Where(x => x > 0x20 && x < 0x7F).ToArray());
+            if (filename.Length > 8)
+                filename = filename.Substring(0, 8);
+            if (extension.Length > 4)
+                extension = extension.Substring(0, 4);
+            return (filename + extension).ToUpperInvariant();
+        }
+
         public static String ProgramVersion()
         {
             FileVersionInfo ver = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);

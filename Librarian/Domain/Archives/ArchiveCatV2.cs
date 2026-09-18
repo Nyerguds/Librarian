@@ -25,7 +25,7 @@ namespace LibrarianTool.Domain.Archives
                 throw new FileTypeLoadException("Not a CAT v2 Archive.");
             loadStream.Read(buffer, 0, 2);
             Int32 nrOfFiles = (Int32)ArrayUtils.ReadIntFromByteArray(buffer, 0, 2, true);
-            if (end - loadStream.Position < nrOfFiles * FileEntryLength)
+            if (nrOfFiles == 0 || end - loadStream.Position < nrOfFiles * FileEntryLength)
                 throw new FileTypeLoadException("Not a CAT v2 Archive.");
             for (Int32 i = 0; i < nrOfFiles; i++)
             {
@@ -36,20 +36,18 @@ namespace LibrarianTool.Domain.Archives
                 if (curNameB.Any(c => c < 0x20 || c >= 0x7F))
                     throw new FileTypeLoadException("Filename contains nonstandard characters.");
                 String curName = enc.GetString(curNameB).Trim();
-                Int32 dosTime = (Int16)ArrayUtils.ReadIntFromByteArray(buffer, 0x0C, 2, true);
-                Int32 sec = (dosTime & 0x1F) * 2;
-                Int32 min = ((dosTime >> 5) & 0x3F);
-                Int32 hour = ((dosTime >> 11) & 0x1F);
-                if (sec > 59 || min > 59 || hour > 23)
-                    throw new FileTypeLoadException("Bad time stamp.");
-                Int32 dosDate = (Int16)ArrayUtils.ReadIntFromByteArray(buffer, 0x0E, 2, true);
-                Int32 day = (dosDate & 0x1F);
-                Int32 month = ((dosDate >> 5) & 0x0F);
-                Int32 year = 1980 + ((dosDate >> 9) & 0x7F);
-                if (day == 0 || month == 0 || month > 12)
-                    throw new FileTypeLoadException("Bad date stamp.");
-                DateTime dt = new DateTime(year, month, day, hour, min, sec);
-                String extraInfo = GetDateStr(dt);
+                UInt16 dosTime = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x0C, 2, true);
+                UInt16 dosDate = (UInt16)ArrayUtils.ReadIntFromByteArray(buffer, 0x0E, 2, true);
+                DateTime dt;
+                try
+                {
+                    dt = GeneralUtils.GetDosDateTime(dosTime, dosDate);
+                }
+                catch (ArgumentException argex)
+                {
+                    throw new FileTypeLoadException(argex.Message, argex);
+                }
+                String extraInfo = GeneralUtils.GetDateString(dt);
                 Int32 curEntryLength = (Int32)ArrayUtils.ReadIntFromByteArray(buffer, 0x10, 4, true);
                 Int32 curEntryPos= (Int32)ArrayUtils.ReadIntFromByteArray(buffer, 0x14, 4, true);
                 if (curEntryPos + curEntryLength > end)
@@ -69,7 +67,7 @@ namespace LibrarianTool.Domain.Archives
         {
             ArchiveEntry file = base.InsertFile(filePath);
             DateTime lastMod = file.Date ?? File.GetLastWriteTime(filePath);
-            file.ExtraInfo = GetDateStr(lastMod);
+            file.ExtraInfo = GeneralUtils.GetDateString(lastMod);
             return file;
         }
 
@@ -107,10 +105,10 @@ namespace LibrarianTool.Domain.Archives
                 for (Int32 b = copySize; b < 12; b++)
                     buffer[b] = 0;
                 DateTime dt = entry.Date ?? writeDate;
-                UInt16 time = (UInt16)((dt.Second >> 1) | (dt.Minute << 5) | (dt.Hour << 11));
-                UInt16 date = (UInt16)((dt.Day) | (dt.Month << 5) | ((dt.Year - 1980) << 9));
-                ArrayUtils.WriteIntToByteArray(buffer, 0x0C, 2, true, (UInt64)time);
-                ArrayUtils.WriteIntToByteArray(buffer, 0x0E, 2, true, (UInt64)date);
+                UInt16 time = GeneralUtils.GetDosTimeInt(dt);
+                UInt16 date = GeneralUtils.GetDosDateInt(dt);
+                ArrayUtils.WriteIntToByteArray(buffer, 0x0C, 2, true, time);
+                ArrayUtils.WriteIntToByteArray(buffer, 0x0E, 2, true, date);
                 ArrayUtils.WriteIntToByteArray(buffer, 0x10, 4, true, (UInt32)fileLength);
                 ArrayUtils.WriteIntToByteArray(buffer, 0x14, 4, true, (UInt32)curEntryStart);
                 curEntryStart += fileLength;
