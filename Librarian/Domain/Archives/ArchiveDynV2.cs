@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Nyerguds.GameData.Dynamix;
+using Nyerguds.FileData.Dynamix;
 using Nyerguds.Util;
 
 namespace LibrarianTool.Domain.Archives
@@ -75,6 +75,11 @@ namespace LibrarianTool.Domain.Archives
             return fe;
         }
 
+        public override List<ArchiveEntry> OrderFilesList(List<ArchiveEntry> filesList, bool copy)
+        {
+            // Do nothing. Do not re-sort this archive. Ever.
+            return filesList;
+        }
 
         /// <summary>Extracts the requested file from the _filesList list.</summary>
         /// <param name="entry">Name of the file to extract.</param>

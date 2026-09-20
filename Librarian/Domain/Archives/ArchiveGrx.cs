@@ -76,9 +76,9 @@ namespace LibrarianTool.Domain.Archives
 
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
-        public override ArchiveEntry InsertFile(string filePath)
+        public override ArchiveEntry InsertFile(string filePath, int insertIndex)
         {
-            ArchiveEntry file = base.InsertFile(filePath);
+            ArchiveEntry file = base.InsertFile(filePath, insertIndex);
             DateTime lastMod = file.Date ?? File.GetLastWriteTime(filePath);
             file.ExtraInfo = GeneralUtils.GetDateString(lastMod);
             return file;

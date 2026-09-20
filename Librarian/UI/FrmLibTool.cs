@@ -1,8 +1,10 @@
 ﻿using LibrarianTool.Domain;
+using LibrarianTool.Domain.Archives;
 using Nyerguds.Util;
 using Nyerguds.Util.UI;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,12 +15,7 @@ namespace LibrarianTool
 {
     public partial class FrmLibTool : Form
     {
-        public delegate void InvokeDelegateReload(Archive newFile, bool asNew, bool resetZoom);
         public delegate DialogResult InvokeDelegateMessageBox(string message, MessageBoxButtons buttons, MessageBoxIcon icon);
-        public delegate DialogResult InvokeDelegateMessageBoxDef(string message, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defButtons);
-        public delegate void InvokeDelegateTwoArgs(object arg1, object arg2);
-        public delegate void InvokeDelegateSingleArg(object value);
-        public delegate void InvokeDelegateEnableControls(bool enabled, string processingLabel);
 
         private const string PROG_NAME = "Librarian";
         private const string PROG_AUTHOR = "Created by Nyerguds";
@@ -131,13 +128,13 @@ namespace LibrarianTool
                 LoadArchive(arch, true);
         }
 
-        private void Lv_DragEnter(object sender, DragEventArgs e)
+        private void LbFilesListDragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 e.Effect = DragDropEffects.Copy;
         }
 
-        private void Lv_DragDrop(object sender, DragEventArgs e)
+        private void LbFilesListDragDrop(object sender, DragEventArgs e)
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length == 0)
@@ -149,11 +146,25 @@ namespace LibrarianTool
                                        "To open an archive, drop it into the area outside the files list.";
                 Invoke(new InvokeDelegateMessageBox(ShowMessageBox), message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+            else if (!m_LoadedArchive.CanSave)
+            {
+                const string message = "There is currently no save support for this archive type, so it is treated as read-only.";
+                Invoke(new InvokeDelegateMessageBox(ShowMessageBox), message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
             else
-                AddFiles(files);
+            {
+                int index = -1;
+                if (m_LoadedArchive.IsOrderSensitive)
+                {
+                    // Insert the file(s) at the actual dropped point.
+                    Point point = lbFilesList.PointToClient(new Point(e.X, e.Y));
+                    index = lbFilesList.IndexFromPoint(point);
+                }
+                AddFiles(files, index);
+            }
         }
 
-        private void AddFiles(string[] files)
+        private void AddFiles(string[] files, int index)
         {
             if (files.Length == 0)
                 return;
@@ -190,22 +201,27 @@ namespace LibrarianTool
                     filesListCustomNames.Add(null);
                 }
             }
-            string[] adaptedFiles = new string[filesList.Count];
+            if (index != -1)
+            {
+                // Reverse the list so they all get inserted at the same spot from the last to the first.
+                filesList.Reverse();
+                filesListCustomNames.Reverse();
+            }
             for (int i = 0; i < filesList.Count; ++i)
             {
                 if (filesListCustomNames[i] == null)
-                    m_LoadedArchive.InsertFile(filesList[i]);
+                    m_LoadedArchive.InsertFile(filesList[i], index);
                 else
-                    m_LoadedArchive.InsertFile(filesList[i], filesListCustomNames[i]);
+                    m_LoadedArchive.InsertFile(filesList[i], filesListCustomNames[i], index);
             }
             int firstIndex = m_LoadedArchive.FilesList.Count;
             ArchiveEntry firstEntry = null;
             for (int i = 0; i < filesList.Count; ++i)
             {
-                ArchiveEntry entry = m_LoadedArchive.FindFile(filesListCustomNames[i] ?? filesList[i], out int index);
-                if (index < firstIndex)
+                ArchiveEntry entry = m_LoadedArchive.FindFile(filesListCustomNames[i] ?? filesList[i], out int foundIndex);
+                if (foundIndex < firstIndex)
                 {
-                    firstIndex = index;
+                    firstIndex = foundIndex;
                     firstEntry = entry;
                 }
             }
@@ -283,8 +299,8 @@ namespace LibrarianTool
             tsmiFileSaveAs.Enabled = loaded;
             tsmiFileReload.Enabled = loaded;
             tsmiFileClose.Enabled = loaded;
-            tsmiArchiveInsert.Enabled = loaded;
-            tsmiArchiveInsertAs.Enabled = loaded;
+            tsmiArchiveInsert.Enabled = loaded && archive.CanSave;
+            tsmiArchiveInsertAs.Enabled = loaded && archive.CanSave;
             tsmiArchiveDelete.Enabled = false;
             tsmiArchiveExtract.Enabled = false;
             int toSelect = 0;
@@ -343,9 +359,18 @@ namespace LibrarianTool
 
         private void RefreshSidebarFileInfo()
         {
+            bool canSave = m_LoadedArchive?.CanSave ?? false;
+            bool orderSensitive = m_LoadedArchive?.IsOrderSensitive ?? false;
             int selected = lbFilesList.SelectedIndices.Count;
+            int firstSelected = selected == 0 ? -1 : lbFilesList.SelectedIndices[0];
             tsmiArchiveExtract.Enabled = selected > 0;
-            tsmiArchiveDelete.Enabled = selected > 0;
+            tsmiArchiveDelete.Enabled = selected > 0 && canSave;
+            bool enableUp = selected == 1 && canSave && orderSensitive && firstSelected > 0;
+            tsmiArchiveMoveUp.Enabled = enableUp;
+            tsmiArchiveMoveUp.Visible = enableUp;
+            bool enableDown = selected == 1 && canSave && orderSensitive && firstSelected + 1 != lbFilesList.Items.Count;
+            tsmiArchiveMoveDown.Enabled = enableDown;
+            tsmiArchiveMoveDown.Visible = enableDown;
             if (selected > 1)
                 lblSelectedFileVal.Text = "Multiple selected (" + selected + ")";
             if (selected == 0)
@@ -392,7 +417,7 @@ namespace LibrarianTool
             lblDateStampVal.Text = entry.Date.HasValue ? entry.Date.Value.ToString("yyyy-MM-dd, HH:mm:ss") : "-";
             lblIsDirectoryVal.Text = entry.IsFolder ? "Yes" : "No";
             lblEntryExtraInfoVal.Text = entry.ExtraInfo;
-            if(!accessible)
+            if (!accessible)
                 DeleteFileFromArchive(entry.FileName + " appears to be missing! Remove entry from the list?", true);
         }
 
@@ -461,18 +486,32 @@ namespace LibrarianTool
             Close();
         }
 
-        private void tsmiArchiveInsert_Click(object sender, EventArgs e)
+        private void TsmiArchiveInsert_Click(object sender, EventArgs e)
         {
+            if (m_LoadedArchive == null || !m_LoadedArchive.CanSave)
+            {
+                return; 
+            }
             OpenFileDialog sfd = new OpenFileDialog();
             sfd.InitialDirectory = m_LastOpenedFolder;
             if (sfd.ShowDialog(this) == DialogResult.OK)
-                AddFiles(new string[] {sfd.FileName});
+            {
+                int index = -1;
+                if (m_LoadedArchive.IsOrderSensitive)
+                {
+                    // Insert the file(s) at the actual dropped point.
+                    index = lbFilesList.SelectedIndices.Count == 0 ? lbFilesList.Items.Count : lbFilesList.SelectedIndices[0];
+                }
+                AddFiles(new string[] { sfd.FileName }, index);
+            }
         }
 
-        private void tsmiArchiveInsertAs_Click(object sender, EventArgs e)
+        private void TsmiArchiveInsertAs_Click(object sender, EventArgs e)
         {
-            if (m_LoadedArchive == null)
+            if (m_LoadedArchive == null || !m_LoadedArchive.CanSave)
+            {
                 return;
+            }
             OpenFileDialog sfd = new OpenFileDialog();
             sfd.InitialDirectory = m_LastOpenedFolder;
             if (sfd.ShowDialog(this) != DialogResult.OK)
@@ -497,12 +536,18 @@ namespace LibrarianTool
                 }
                 nameOk = true;
             }
-            m_LoadedArchive.InsertFile(sfd.FileName, newName);
+            int index = -1;
+            if (m_LoadedArchive.IsOrderSensitive)
+            {
+                // Insert the file(s) at the actual dropped point.
+                index = lbFilesList.SelectedIndices.Count == 0 ? lbFilesList.Items.Count : lbFilesList.SelectedIndices[0];
+            }
+            m_LoadedArchive.InsertFile(sfd.FileName, newName, index);
             newName = m_LoadedArchive.GetInternalFilename(newName);
             LoadArchive(m_LoadedArchive, false, newName);
         }
 
-        private void tsmiArchiveExtract_Click(object sender, EventArgs e)
+        private void TsmiArchiveExtract_Click(object sender, EventArgs e)
         {
             if (m_LoadedArchive == null || lbFilesList.SelectedItems.Count == 0)
                 return;
@@ -541,10 +586,12 @@ namespace LibrarianTool
             }
         }
 
-        private void tsmiArchiveDelete_Click(object sender, EventArgs e)
+        private void TsmiArchiveDelete_Click(object sender, EventArgs e)
         {
-            if (m_LoadedArchive == null || lbFilesList.SelectedItems.Count == 0)
+            if (m_LoadedArchive == null || !m_LoadedArchive.CanSave || lbFilesList.SelectedItems.Count == 0)
+            {
                 return;
+            }
             string question = "Remove ";
             if (lbFilesList.SelectedItems.Count == 1)
                 question += "\"" + ((ArchiveEntry) lbFilesList.SelectedItem).FileName + "\"?";
@@ -552,7 +599,45 @@ namespace LibrarianTool
                 question += lbFilesList.SelectedItems.Count + " items?";
             DeleteFileFromArchive(question, false);
         }
-        
+
+        private void TsmiArchiveMoveUp_Click(object sender, EventArgs e)
+        {
+            if (m_LoadedArchive == null || !m_LoadedArchive.CanSave || !m_LoadedArchive.IsOrderSensitive || lbFilesList.SelectedIndices.Count != 1)
+            {
+                return;
+            }
+            int selectedIndex = lbFilesList.SelectedIndices[0];
+            if (selectedIndex == 0)
+            {
+                return;
+            }
+            int prevIndex = selectedIndex - 1;
+            ArchiveEntry curr = m_LoadedArchive.FilesList[selectedIndex];
+            ArchiveEntry prev = m_LoadedArchive.FilesList[prevIndex];
+            m_LoadedArchive.FilesList[selectedIndex] = prev;
+            m_LoadedArchive.FilesList[prevIndex] = curr;
+            LoadArchive(m_LoadedArchive, false, curr.FileName, curr.HashedFilename);
+        }
+
+        private void TsmiArchiveMoveDown_Click(object sender, EventArgs e)
+        {
+            if (m_LoadedArchive == null || !m_LoadedArchive.CanSave || !m_LoadedArchive.IsOrderSensitive || lbFilesList.SelectedIndices.Count != 1)
+            {
+                return;
+            }
+            int selectedIndex = lbFilesList.SelectedIndices[0];
+            if (selectedIndex == lbFilesList.Items.Count - 1)
+            {
+                return;
+            }
+            int nextIndex = selectedIndex + 1;
+            ArchiveEntry curr = m_LoadedArchive.FilesList[selectedIndex];
+            ArchiveEntry next = m_LoadedArchive.FilesList[nextIndex];
+            m_LoadedArchive.FilesList[selectedIndex] = next;
+            m_LoadedArchive.FilesList[nextIndex] = curr;
+            LoadArchive(m_LoadedArchive, false, curr.FileName, curr.HashedFilename);
+        }
+
         private void DeleteFileFromArchive(string question, bool useYesNo)
         {
             if (m_LoadedArchive == null || lbFilesList.SelectedItems.Count == 0)
@@ -668,23 +753,33 @@ namespace LibrarianTool
             if (e.Button != MouseButtons.Right)
                 return;
             ContextMenu cm = new ContextMenu();
-            MenuItem cmInsert = new MenuItem(tsmiArchiveInsert.Text, tsmiArchiveInsert_Click);
-            MenuItem cmInsertAs = new MenuItem(tsmiArchiveInsertAs.Text, tsmiArchiveInsertAs_Click);
-            MenuItem cmExtract = new MenuItem(tsmiArchiveExtract.Text, tsmiArchiveExtract_Click);
-            MenuItem cmDelete = new MenuItem(tsmiArchiveDelete.Text, tsmiArchiveDelete_Click);
+            MenuItem cmInsert = new MenuItem(tsmiArchiveInsert.Text, TsmiArchiveInsert_Click);
+            cmInsert.Enabled = tsmiArchiveInsert.Enabled;
+            MenuItem cmInsertAs = new MenuItem(tsmiArchiveInsertAs.Text, TsmiArchiveInsertAs_Click);
+            cmInsertAs.Enabled = tsmiArchiveInsertAs.Enabled;
+            MenuItem cmExtract = new MenuItem(tsmiArchiveExtract.Text, TsmiArchiveExtract_Click);
+            cmExtract.Enabled = tsmiArchiveExtract.Enabled;
+            MenuItem cmDelete = new MenuItem(tsmiArchiveDelete.Text, TsmiArchiveDelete_Click);
+            cmDelete.Enabled = tsmiArchiveDelete.Enabled;
+            
+            MenuItem cmUp = null;
+            MenuItem cmDown = null;
+            if (m_LoadedArchive != null && m_LoadedArchive.IsOrderSensitive)
+            {
+                cmUp = new MenuItem(tsmiArchiveMoveUp.Text, TsmiArchiveMoveUp_Click);
+                cmUp.Enabled = tsmiArchiveMoveUp.Enabled;
+                cmDown = new MenuItem(tsmiArchiveMoveDown.Text, TsmiArchiveMoveDown_Click);
+                cmDown.Enabled = tsmiArchiveMoveDown.Enabled;
+            }
 
-            bool loaded = m_LoadedArchive != null;
-            bool selected = lbFilesList.SelectedIndices.Count > 0;
-            cmInsert.Enabled = loaded;
-            cmInsertAs.Enabled = loaded;
-            cmDelete.Enabled = selected;
-            cmExtract.Enabled = selected;
             cm.MenuItems.Add(cmInsert);
             cm.MenuItems.Add(cmInsertAs);
-            cm.MenuItems.Add(cmDelete);
             cm.MenuItems.Add(cmExtract);
+            cm.MenuItems.Add(cmDelete);
+            if (cmUp != null) cm.MenuItems.Add(cmUp);
+            if (cmDown != null) cm.MenuItems.Add(cmDown);
+
             cm.Show(lbFilesList, e.Location);
         }
-
     }
 }

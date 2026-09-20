@@ -12,6 +12,7 @@ namespace LibrarianTool.Domain
         public HashType HashType { get; set; }
         public string ArchivePath { get; set; }
         public int StartOffset { get; set; }
+        public int IndexOffset { get; set; }
         public int Length { get; set; }
         public string ExtraInfo { get; set; }
         public byte[] ExtraInfoBin { get; set; }
@@ -130,9 +131,9 @@ namespace LibrarianTool.Domain
                     path = archive.GetInternalFilename(path);
                 return path + " (*)";
             }
-            else if (HashedFilename.HasValue)
+            else if (HashedFilename.HasValue && FileName == null)
             {
-                return "[" + HashedFilename.Value.ToString("XXXXXXXX") + "]";
+                return "[" + HashedFilename.Value.ToString("X8") + "]";
             }
             else
             {

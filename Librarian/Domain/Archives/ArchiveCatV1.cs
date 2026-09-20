@@ -51,11 +51,6 @@ namespace LibrarianTool.Domain.Archives
             return filesList;
         }
 
-        protected override void OrderFilesListInternal(List<ArchiveEntry> filesList)
-        {
-            // do nothing
-        }
-
         public override bool SaveArchive(Archive archive, Stream saveStream, string savePath)
         {
             ArchiveEntry[] entries = archive.FilesList.ToArray();

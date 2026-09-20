@@ -11,7 +11,7 @@ archives was added later. Currently supported archives:
 -Westwood Studios PAK v1
 -Westwood Studios PAK v2
 -Westwood Studios PAK v3
--Sierry/Dynamix archives v1
+-Sierry/Dynamix archives v1 (though the hashing method is unknown, so adding new files doesn't really work)
 -Sierry/Dynamix archives v2 (read-only)
 -Ren'Py archives (read-only)
 -Interactive Girls Club M3/SLB archives
@@ -42,6 +42,10 @@ Note that at this moment, there are no formats with subdirectories that actually
 
 Version history:
 ---------------
+
+v1.1.2: (20/09/2026 20:02)
+-Added potential support for specifically-ordered archives.
+-Completed write support for Dynamix v1 archives; they require a hashmap update in an accompanying file.
 
 v1.1.1: (18/09/2026 21:06)
 -Added support for "Executioners" archives.

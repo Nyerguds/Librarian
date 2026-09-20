@@ -18,7 +18,8 @@ namespace LibrarianTool.Domain
         /// <summary>Supported types can always be loaded, but this indicates if save functionality to this type is also available.</summary>
         public abstract bool CanSave { get; }
         public virtual bool SupportsFolders { get { return false; } }
-        
+        public virtual bool IsOrderSensitive { get { return false; } }
+
         protected List<ArchiveEntry> _filesList = new List<ArchiveEntry>();
         public List<ArchiveEntry> FilesList { get { return _filesList; } }
         public string FileName { get; protected set; }
@@ -53,7 +54,7 @@ namespace LibrarianTool.Domain
             List<ArchiveEntry> filesList = LoadArchiveInternal(loadStream, archivePath);
             if (filesList == null)
                 filesList = new List<ArchiveEntry>();
-            OrderFilesListInternal(filesList);
+            OrderFilesList(filesList, false);
             _filesList = filesList;
         }
 
@@ -138,54 +139,78 @@ namespace LibrarianTool.Domain
         
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
-		public virtual ArchiveEntry InsertFile(string filePath)
-		{
+        public virtual ArchiveEntry InsertFile(string filePath, int insertIndex)
+        {
             bool isFolder = (File.GetAttributes(filePath) & FileAttributes.Directory) != 0;
             string internalFilename = GetInternalFilename(Path.GetFileName(filePath));
             int foundIndex;
             FindFile(internalFilename, out foundIndex);
-			ArchiveEntry retEntry = InsertFileInternal(filePath, internalFilename, foundIndex);
+            ArchiveEntry retEntry = InsertFileInternal(filePath, internalFilename, foundIndex, insertIndex);
             if (retEntry.FileName == null)
             {
-                retEntry.FileName = GetInternalFilename(internalFilename);
+                retEntry.FileName = internalFilename;
             }
             retEntry.IsFolder = isFolder;
             retEntry.Date = File.GetLastWriteTime(filePath);
-			OrderFilesListInternal(_filesList);
+            OrderFilesList(_filesList, false);
             return retEntry;
-		}
+        }
 
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
         /// <param name="filePath">Path of the file to load.</param>
         /// <param name="internalFilename">Filename as it is stored in the archive.</param>
-        public virtual ArchiveEntry InsertFile(string filePath, string internalFilename)
+        public virtual ArchiveEntry InsertFile(string filePath, string internalFilename, int insertIndex)
         {
             bool isFolder = (File.GetAttributes(filePath) & FileAttributes.Directory) != 0;
-			internalFilename = GetInternalFilename(internalFilename);
+            internalFilename = GetInternalFilename(internalFilename);
             int foundIndex;
-			FindFile(internalFilename, out foundIndex);
-            ArchiveEntry retEntry = InsertFileInternal(filePath, internalFilename, foundIndex);
+            FindFile(internalFilename, out foundIndex);
+            ArchiveEntry retEntry = InsertFileInternal(filePath, internalFilename, foundIndex, insertIndex);
             retEntry.IsFolder = isFolder;
-			OrderFilesListInternal(_filesList);
+            OrderFilesList(_filesList, false);
             return retEntry;
-		}
+        }
 
-        protected virtual ArchiveEntry InsertFileInternal(string filePath, string internalFilename, int foundIndex)
-		{
+        protected virtual ArchiveEntry InsertFileInternal(string filePath, string internalFilename, int foundIndex, int insertIndex)
+        {
             ArchiveEntry entry;
-		    if (foundIndex == -1)
-		        _filesList.Add(entry = new ArchiveEntry(filePath, internalFilename));
-		    else
-		        _filesList[foundIndex] = (entry = new ArchiveEntry(filePath, internalFilename, _filesList[foundIndex].ExtraInfo));
+            if (foundIndex == -1)
+            {
+                entry = new ArchiveEntry(filePath, internalFilename);
+                if (insertIndex == -1)
+                {
+                    _filesList.Add(entry);
+                }
+                else
+                {
+                    _filesList.Insert(insertIndex, entry);
+                }
+            }
+            else
+            {
+                ArchiveEntry orig = _filesList[foundIndex];
+                entry = new ArchiveEntry(filePath, internalFilename, orig.ExtraInfo);
+                entry.HashType = orig.HashType;
+                entry.HashedFilename = orig.HashedFilename;
+                _filesList[foundIndex] = entry;
+            }
             return entry;
-		}
+        }
 
-        protected virtual void OrderFilesListInternal(List<ArchiveEntry> filesList)
-		{
+        public virtual List<ArchiveEntry> OrderFilesList(List<ArchiveEntry> filesList, bool copy)
+        {
             List<ArchiveEntry> orderedList = filesList.OrderBy(x => x.FileName).ToList();
-			filesList.Clear();
-			filesList.AddRange(orderedList);
-		}
+            if (copy)
+            {
+                return orderedList;
+            }
+            else
+            {
+                filesList.Clear();
+                filesList.AddRange(orderedList);
+                return filesList;
+            }
+        }
 
         /// <summary>
         /// Converts the filename to the type supported internally. By default, this strips
@@ -425,7 +450,7 @@ namespace LibrarianTool.Domain
             typeof(ArchivePakV2),
             typeof(ArchivePakV3),
             typeof(ArchiveRenpy),
-			typeof(ArchiveSndKort),
+            typeof(ArchiveSndKort),
             typeof(ArchiveSwt),
             typeof(ArchiveGrx),
             typeof(ArchiveCatV1),
@@ -455,7 +480,7 @@ namespace LibrarianTool.Domain
             typeof(ArchiveExec),
             typeof(ArchiveCatV1),
             typeof(ArchiveCatV2),
-			typeof(ArchiveSndKort),
+            typeof(ArchiveSndKort),
             typeof(ArchiveSwt),
             typeof(ArchiveGrx),
             typeof(ArchiveMvb),

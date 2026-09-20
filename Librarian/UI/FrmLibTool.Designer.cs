@@ -42,6 +42,8 @@
             this.tsmiArchiveInsertAs = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiArchiveExtract = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiArchiveDelete = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiArchiveMoveUp = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiArchiveMoveDown = new System.Windows.Forms.ToolStripMenuItem();
             this.lbFilesList = new System.Windows.Forms.ListBox();
             this.lblFileNameVal = new System.Windows.Forms.Label();
             this.lblArchiveTypeVal = new System.Windows.Forms.Label();
@@ -157,7 +159,9 @@
             this.tsmiArchiveInsert,
             this.tsmiArchiveInsertAs,
             this.tsmiArchiveExtract,
-            this.tsmiArchiveDelete});
+            this.tsmiArchiveDelete,
+            this.tsmiArchiveMoveUp,
+            this.tsmiArchiveMoveDown});
             this.tsmiArchive.Name = "tsmiArchive";
             this.tsmiArchive.Size = new System.Drawing.Size(59, 20);
             this.tsmiArchive.Text = "&Archive";
@@ -166,33 +170,51 @@
             // 
             this.tsmiArchiveInsert.Name = "tsmiArchiveInsert";
             this.tsmiArchiveInsert.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
-            this.tsmiArchiveInsert.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveInsert.Size = new System.Drawing.Size(198, 22);
             this.tsmiArchiveInsert.Text = "&Insert file...";
-            this.tsmiArchiveInsert.Click += new System.EventHandler(this.tsmiArchiveInsert_Click);
+            this.tsmiArchiveInsert.Click += new System.EventHandler(this.TsmiArchiveInsert_Click);
             // 
             // tsmiArchiveInsertAs
             // 
             this.tsmiArchiveInsertAs.Name = "tsmiArchiveInsertAs";
             this.tsmiArchiveInsertAs.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
-            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(185, 22);
-            this.tsmiArchiveInsertAs.Text = "Insert file as...";
-            this.tsmiArchiveInsertAs.Click += new System.EventHandler(this.tsmiArchiveInsertAs_Click);
+            this.tsmiArchiveInsertAs.Size = new System.Drawing.Size(198, 22);
+            this.tsmiArchiveInsertAs.Text = "Insert file &as...";
+            this.tsmiArchiveInsertAs.Click += new System.EventHandler(this.TsmiArchiveInsertAs_Click);
             // 
             // tsmiArchiveExtract
             // 
             this.tsmiArchiveExtract.Name = "tsmiArchiveExtract";
             this.tsmiArchiveExtract.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.tsmiArchiveExtract.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveExtract.Size = new System.Drawing.Size(198, 22);
             this.tsmiArchiveExtract.Text = "&Extract file...";
-            this.tsmiArchiveExtract.Click += new System.EventHandler(this.tsmiArchiveExtract_Click);
+            this.tsmiArchiveExtract.Click += new System.EventHandler(this.TsmiArchiveExtract_Click);
             // 
             // tsmiArchiveDelete
             // 
             this.tsmiArchiveDelete.Name = "tsmiArchiveDelete";
             this.tsmiArchiveDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.tsmiArchiveDelete.Size = new System.Drawing.Size(185, 22);
+            this.tsmiArchiveDelete.Size = new System.Drawing.Size(198, 22);
             this.tsmiArchiveDelete.Text = "&Delete file";
-            this.tsmiArchiveDelete.Click += new System.EventHandler(this.tsmiArchiveDelete_Click);
+            this.tsmiArchiveDelete.Click += new System.EventHandler(this.TsmiArchiveDelete_Click);
+            // 
+            // tsmiArchiveMoveUp
+            // 
+            this.tsmiArchiveMoveUp.Name = "tsmiArchiveMoveUp";
+            this.tsmiArchiveMoveUp.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.U)));
+            this.tsmiArchiveMoveUp.Size = new System.Drawing.Size(198, 22);
+            this.tsmiArchiveMoveUp.Text = "Move file &up";
+            this.tsmiArchiveMoveUp.Visible = false;
+            this.tsmiArchiveMoveUp.Click += new System.EventHandler(this.TsmiArchiveMoveUp_Click);
+            // 
+            // tsmiArchiveMoveDown
+            // 
+            this.tsmiArchiveMoveDown.Name = "tsmiArchiveMoveDown";
+            this.tsmiArchiveMoveDown.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
+            this.tsmiArchiveMoveDown.Size = new System.Drawing.Size(198, 22);
+            this.tsmiArchiveMoveDown.Text = "Move file do&wn";
+            this.tsmiArchiveMoveDown.Visible = false;
+            this.tsmiArchiveMoveDown.Click += new System.EventHandler(this.TsmiArchiveMoveDown_Click);
             // 
             // lbFilesList
             // 
@@ -206,8 +228,8 @@
             this.lbFilesList.Size = new System.Drawing.Size(242, 420);
             this.lbFilesList.TabIndex = 2;
             this.lbFilesList.SelectedIndexChanged += new System.EventHandler(this.lbFilesList_SelectedIndexChanged);
-            this.lbFilesList.DragDrop += new System.Windows.Forms.DragEventHandler(this.Lv_DragDrop);
-            this.lbFilesList.DragEnter += new System.Windows.Forms.DragEventHandler(this.Lv_DragEnter);
+            this.lbFilesList.DragDrop += new System.Windows.Forms.DragEventHandler(this.LbFilesListDragDrop);
+            this.lbFilesList.DragEnter += new System.Windows.Forms.DragEventHandler(this.LbFilesListDragEnter);
             this.lbFilesList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lbFilesList_MouseUp);
             // 
             // lblFileNameVal
@@ -472,6 +494,7 @@
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
 
         #endregion
@@ -515,6 +538,8 @@
         private System.Windows.Forms.Label lblDateStamp;
         private System.Windows.Forms.Label lblDateStampVal;
         private System.Windows.Forms.Label lblIsDirectoryVal;
+        private System.Windows.Forms.ToolStripMenuItem tsmiArchiveMoveUp;
+        private System.Windows.Forms.ToolStripMenuItem tsmiArchiveMoveDown;
     }
 }
 
