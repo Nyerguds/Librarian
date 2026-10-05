@@ -291,7 +291,7 @@ namespace LibrarianTool.Domain.Archives
             for (int b = filename.Length; b <= FILENAME_LEN; ++b)
                 hashTable[b] = 0;
             ArrayUtils.WriteUInt16ToByteArrayLe(hashTable, FILENAME_LEN, (ushort)filesCount);
-            int ptr = FILENAME_LEN + 2;
+            int ptr = HASH_ENTRY_HEADER_LEN;
             for (int i = 0; i < filesCount; ++i)
             {
                 ArrayUtils.WriteUInt32ToByteArrayLe(hashTable, ptr, filesList[i].HashedFilename.GetValueOrDefault(0xFFFFFF));

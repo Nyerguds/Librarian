@@ -1,6 +1,6 @@
 # Librarian
 
-Librarian is a simple game archive management tool.
+Librarian is a simple game archive management tool. See [Librarian/Librarian.txt](Librarian/Librarian.txt) for the list of supported archive types.
 
 ---
 
