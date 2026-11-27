@@ -15,3 +15,5 @@ However, some pieces of code used in this were taken from external sources. Thos
   The original source file contains no explicit license or copyright notice. The licensing status of this particular version is therefore unclear.
 
 * The Dynamix LZW decompression code was converted from [the C++ code of VOGONS.org user tikalat's "midi tools v4"](https://www.vogons.org/viewtopic.php?p=273448#p273448). It contains no license but I assume the fact he included the code implies that he doesn't mind it being useful to more people. The license on the attachment on the forum says "Fair use/fair dealing exception"; not really a license meant for posting your own code under.
+
+* The FLA2 compression code was converted from [the C++ code](https://github.com/DSLL32/nviewer/blob/master/codecs/fla2.cpp) found on [the nviewer GitHub](https://github.com/DSLL32/nviewer/tree/master). At the moment this is written, no license was added to the repository.

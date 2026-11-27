@@ -23,6 +23,7 @@ archives was added later. Currently supported archives:
 -MPS Labs Catalog v2
 -Executioners Archive
 -PC Spiel MVB Archive
+-Interactive Studios FLA2 compressed files (Wargames: DEFCON 1)
 
 Further information on the tool and its file formats can be found on the Shikadi modding wiki:
 https://moddingwiki.shikadi.net/wiki/Librarian
@@ -42,6 +43,9 @@ Note that at this moment, there are no formats with subdirectories that actually
 
 Version history:
 ---------------
+
+v1.1.3: (27/11/2026 17:30)
+-Added support for the compressed .fla files in Wargames: DEFCON 1. These are a bit odd since they're single-file "archives".
 
 v1.1.2: (20/09/2026 20:02)
 -Added potential support for specifically-ordered archives.

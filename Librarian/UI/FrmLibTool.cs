@@ -1,5 +1,4 @@
 ﻿using LibrarianTool.Domain;
-using LibrarianTool.Domain.Archives;
 using Nyerguds.Util;
 using Nyerguds.Util.UI;
 using System;
@@ -207,12 +206,28 @@ namespace LibrarianTool
                 filesList.Reverse();
                 filesListCustomNames.Reverse();
             }
+            int insertedFiles = 0;
             for (int i = 0; i < filesList.Count; ++i)
             {
-                if (filesListCustomNames[i] == null)
-                    m_LoadedArchive.InsertFile(filesList[i], index);
-                else
-                    m_LoadedArchive.InsertFile(filesList[i], filesListCustomNames[i], index);
+                try
+                {
+                    if (filesListCustomNames[i] == null)
+                        m_LoadedArchive.InsertFile(filesList[i], index);
+                    else
+                        m_LoadedArchive.InsertFile(filesList[i], filesListCustomNames[i], index);
+                    insertedFiles++;
+                }
+                catch (InvalidOperationException ivex)
+                {
+                    // Check if this is thrown because the archive is full.
+                    if (m_LoadedArchive.MaximumEntries == m_LoadedArchive.FilesList.Count)
+                    {
+                        MessageBox.Show(
+                            ivex.Message + "\n\n" + insertedFiles + " file" + (insertedFiles == 1 ? " was" : "s were") + " inserted.",
+                            GetTitle(false, false));
+                        break;
+                    }
+                }
             }
             int firstIndex = m_LoadedArchive.FilesList.Count;
             ArchiveEntry firstEntry = null;
@@ -299,8 +314,9 @@ namespace LibrarianTool
             tsmiFileSaveAs.Enabled = loaded;
             tsmiFileReload.Enabled = loaded;
             tsmiFileClose.Enabled = loaded;
-            tsmiArchiveInsert.Enabled = loaded && archive.CanSave;
-            tsmiArchiveInsertAs.Enabled = loaded && archive.CanSave;
+            bool canInsert = loaded && archive.CanSave && (archive.MaximumEntries < 0 || archive.FilesList.Count < archive.MaximumEntries);
+            tsmiArchiveInsert.Enabled = canInsert;
+            tsmiArchiveInsertAs.Enabled = canInsert;
             tsmiArchiveDelete.Enabled = false;
             tsmiArchiveExtract.Enabled = false;
             int toSelect = 0;
@@ -655,7 +671,7 @@ namespace LibrarianTool
         {
             if (m_LoadedArchive == null)
                 return;
-            if (m_LoadedArchive.FileName == null)
+            if (m_LoadedArchive.FileName == null || m_LoadedArchive.IsNew)
                 SaveArchiveAs(true);
             else
                 SaveArchive(m_LoadedArchive, m_LoadedArchive.FileName, true);
@@ -688,17 +704,27 @@ namespace LibrarianTool
                 {
                     if (entry.IsFolder || entry.FileName.Contains("\\"))
                     {
-                        Invoke(new InvokeDelegateMessageBox(ShowMessageBox), "Cannot save as this archive type; it does not support subfolders.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Invoke(new InvokeDelegateMessageBox(ShowMessageBox), "Cannot save as this archive type; it does not support subfolders.",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
                 }
+            }
+            if (archiveType.MaximumEntries > 0 && archiveType.FilesList.Count > archiveType.MaximumEntries)
+            {
+                Invoke(new InvokeDelegateMessageBox(ShowMessageBox),
+                    string.Format("Cannot save as this archive type; it can only contain {0} file{1}, but contains {2}.",
+                                    archiveType.MaximumEntries, archiveType.MaximumEntries == 1 ? string.Empty : "s", archiveType.FilesList.Count),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
             try
             {
                 FileInfo fi = new FileInfo(filename);
                 if (fi.Exists && fi.IsReadOnly)
                 {
-                    Invoke(new InvokeDelegateMessageBox(ShowMessageBox), "Cannot save to this file; it is read-only.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Invoke(new InvokeDelegateMessageBox(ShowMessageBox), "Cannot save to this file; it is read-only.",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
             }

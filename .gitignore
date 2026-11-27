@@ -2,4 +2,5 @@
 **/bin/*
 **/obj/*
 *.DotSettings
+*.csproj.user
 *.v11.suo

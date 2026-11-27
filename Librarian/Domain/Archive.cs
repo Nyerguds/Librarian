@@ -17,12 +17,19 @@ namespace LibrarianTool.Domain
         public virtual string FileExtension { get; set; }
         /// <summary>Supported types can always be loaded, but this indicates if save functionality to this type is also available.</summary>
         public abstract bool CanSave { get; }
+        /// <summary>Does this archive supports directory structures?</summary>
         public virtual bool SupportsFolders { get { return false; } }
+        /// <summary>Does the order of the files in this archive matter?</summary>
         public virtual bool IsOrderSensitive { get { return false; } }
+        /// <summary>Can this archive type be saved without any entries inside?</summary>
+        public virtual bool CanBeEmpty { get { return false; } }
+        /// <summary>Maximum amount of files supported by this type (-1 for unlimited)</summary>
+        public virtual int MaximumEntries { get { return -1; } }
 
         protected List<ArchiveEntry> _filesList = new List<ArchiveEntry>();
         public List<ArchiveEntry> FilesList { get { return _filesList; } }
         public string FileName { get; protected set; }
+        public bool IsNew { get; protected set; } = true;
         public virtual string ExtraInfo { get; protected set; }
         
         /// <summary>Reads the file, and fills in the _filesList list;</summary>
@@ -56,6 +63,7 @@ namespace LibrarianTool.Domain
                 filesList = new List<ArchiveEntry>();
             OrderFilesList(filesList, false);
             _filesList = filesList;
+            IsNew = false;
         }
 
         /// <summary>Reads the stream, and fills in the _filesList list;</summary>
@@ -141,19 +149,7 @@ namespace LibrarianTool.Domain
         /// <param name="filePath">Path of the file to load.</param>
         public virtual ArchiveEntry InsertFile(string filePath, int insertIndex)
         {
-            bool isFolder = (File.GetAttributes(filePath) & FileAttributes.Directory) != 0;
-            string internalFilename = GetInternalFilename(Path.GetFileName(filePath));
-            int foundIndex;
-            FindFile(internalFilename, out foundIndex);
-            ArchiveEntry retEntry = InsertFileInternal(filePath, internalFilename, foundIndex, insertIndex);
-            if (retEntry.FileName == null)
-            {
-                retEntry.FileName = internalFilename;
-            }
-            retEntry.IsFolder = isFolder;
-            retEntry.Date = File.GetLastWriteTime(filePath);
-            OrderFilesList(_filesList, false);
-            return retEntry;
+            return InsertFile(filePath, Path.GetFileName(filePath), insertIndex);
         }
 
         /// <summary>Inserts a file into the archive. This can be overridden to add filtering on the input.</summary>
@@ -165,6 +161,13 @@ namespace LibrarianTool.Domain
             internalFilename = GetInternalFilename(internalFilename);
             int foundIndex;
             FindFile(internalFilename, out foundIndex);
+            // A new file entry is about to be added, but no more space is available.
+            if (foundIndex == -1 && MaximumEntries > 0 && FilesList.Count >= MaximumEntries)
+            {
+                throw new InvalidOperationException(string.Format("This archive can only contain {0} {1}. Maximum capacity was reached.",
+                    MaximumEntries,
+                    MaximumEntries == 1 ? "entry" : "entries"));
+            }
             ArchiveEntry retEntry = InsertFileInternal(filePath, internalFilename, foundIndex, insertIndex);
             retEntry.IsFolder = isFolder;
             OrderFilesList(_filesList, false);
@@ -291,7 +294,7 @@ namespace LibrarianTool.Domain
             }
         }
 
-        protected static void CopyEntryContentsToStream(ArchiveEntry entry, Stream saveStream)
+        protected void CopyEntryContentsToStream(ArchiveEntry entry, Stream saveStream)
         {
             string readFile;
             int start;
@@ -302,13 +305,28 @@ namespace LibrarianTool.Domain
                 start = 0;
                 FileInfo fi = new FileInfo(entry.PhysicalPath);
                 length = (int)fi.Length;
+                using (FileStream fs = new FileStream(readFile, FileMode.Open, FileAccess.Read))
+                {
+                    fs.Seek(start, SeekOrigin.Begin);
+                    CopyStream(fs, saveStream, length);
+                }
             }
             else
             {
-                readFile = entry.ArchivePath;
-                start = entry.StartOffset;
-                length = entry.Length;
+                ExtractEntryContentsFromArchive(entry, saveStream);
             }
+        }
+
+        /// <summary>
+        /// Extracts an entry's data from an archive. If the archive uses compression, this needs to be overridden.
+        /// </summary>
+        /// <param name="entry">Entry to extract</param>
+        /// <param name="saveStream">Stream to save the extracted file contents to.</param>
+        protected virtual void ExtractEntryContentsFromArchive(ArchiveEntry entry, Stream saveStream)
+        {
+            string readFile = entry.ArchivePath;
+            int start = entry.StartOffset;
+            int length = entry.Length;
             using (FileStream fs = new FileStream(readFile, FileMode.Open, FileAccess.Read))
             {
                 fs.Seek(start, SeekOrigin.Begin);
@@ -457,6 +475,7 @@ namespace LibrarianTool.Domain
             typeof(ArchiveCatV2),
             typeof(ArchiveMvb),
             typeof(ArchiveExec),
+            typeof(ArchiveFla2),
         };
 
         /// <summary>
@@ -477,6 +496,7 @@ namespace LibrarianTool.Domain
             typeof(ArchivePakV1),
             typeof(ArchiveDynV1),
             typeof(ArchiveDynV2),
+            typeof(ArchiveFla2),
             typeof(ArchiveExec),
             typeof(ArchiveCatV1),
             typeof(ArchiveCatV2),

@@ -39,6 +39,28 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,6 +80,7 @@
     <Compile Include="Domain\Archives\ArchiveCatV1.cs" />
     <Compile Include="Domain\Archives\ArchiveDuneCd.cs" />
     <Compile Include="Domain\Archives\ArchiveExec.cs" />
+    <Compile Include="Domain\Archives\ArchiveFla2.cs" />
     <Compile Include="Domain\Archives\ArchiveLadyGl.cs" />
     <Compile Include="Domain\Archives\ArchiveLibV1.cs" />
     <Compile Include="Domain\Archives\ArchiveLibV2.cs" />
@@ -71,6 +94,7 @@
     <Compile Include="Domain\Archives\ArchiveGrx.cs" />
     <Compile Include="Domain\Archives\ArchiveSwt.cs" />
     <Compile Include="Domain\Archives\ArchiveCatV2.cs" />
+    <Compile Include="Domain\FileData\Fla2Compression.cs" />
     <Compile Include="Domain\FileData\LzssHuffDecoder.cs" />
     <Compile Include="Domain\Utils\ExtensionSorter.cs" />
     <Compile Include="Domain\FileData\Dynamix\DynamixChunk.cs" />
